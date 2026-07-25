@@ -1,0 +1,32 @@
+{
+  "evidenceVersion": 1,
+  "sourceReport": {
+    "path": ".output/assessment-report.json",
+    "sha256": "749978eee370aa3263041e9c197e2d1f5ff1230f87bb4b8baaf58a28a5a08fd5",
+    "schemaVersion": 1,
+    "suiteVersion": "1.0.0",
+    "startedAt": "2026-07-25T22:19:25.180Z",
+    "generatedAt": "2026-07-25T22:19:25.180Z"
+  },
+  "environment": {
+    "browserUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "summarizerApiPresent": true,
+    "availability": "available",
+    "sessionOutcome": "created"
+  },
+  "outcomes": {
+    "reportEvents": 1981,
+    "results": 24,
+    "deterministicOnlyResults": 6,
+    "localAiResults": 18,
+    "localAiErrors": 0,
+    "failedDeterministicStructuralChecks": 0,
+    "failedLocalAiStructuralChecks": 0,
+    "failedSummaryStages": 0
+  },
+  "notes": [
+    "The six Full source results intentionally have no local-AI output.",
+    "This summary intentionally excludes fixture content and generated model outputs.",
+    "The source report predates the detailed provisioning-event schema introduced later in the change."
+  ]
+}
