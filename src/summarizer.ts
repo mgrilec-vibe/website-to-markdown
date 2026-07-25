@@ -2,6 +2,7 @@ import type {
   AvailabilityState,
   CapabilityDiagnostic,
   ProvisionEvent,
+  ProvisionEventKind,
   SummarizerSettings,
   SummaryStage,
 } from './domain';
@@ -38,6 +39,8 @@ const AVAILABILITY_STATES: Record<Exclude<AvailabilityState, 'unknown'>, true> =
   downloading: true,
   available: true,
 };
+const diagnosticStartedAtMs = performance.now();
+let provisionEventSequence = 0;
 let testApiOverride: ChromeSummarizerApi | null | undefined;
 
 function now(): string {
@@ -50,12 +53,24 @@ function toAvailabilityState(value: string): AvailabilityState {
     : 'unknown';
 }
 
-function event(
-  kind: ProvisionEvent['kind'],
+export function createProvisionEvent(
+  kind: ProvisionEventKind,
   detail: string,
   progress: number | null = null,
+  context: ProvisionEvent['context'] = {},
 ): ProvisionEvent {
-  return { at: now(), kind, detail, progress };
+  provisionEventSequence += 1;
+  const diagnostic = {
+    id: `provision-${provisionEventSequence}`,
+    at: now(),
+    elapsedMs: Math.round(performance.now() - diagnosticStartedAtMs),
+    kind,
+    detail,
+    progress,
+    context,
+  };
+  console.info('[Chrome Local AI Assessment] provisioning event', diagnostic);
+  return diagnostic;
 }
 
 export function setSummarizerApiForTesting(api: ChromeSummarizerApi | null | undefined): void {
@@ -81,7 +96,11 @@ export async function checkCapability(settings: SummarizerLanguageOptions): Prom
       browserUserAgent,
       checkedAt,
       sessionOutcome: 'not-attempted',
-      events: [event('availability', 'Chrome Summarizer API is not exposed in this context.')],
+      events: [createProvisionEvent('availability', 'Chrome Summarizer API is not exposed in this context.', null, {
+        expectedInputLanguages: settings.expectedInputLanguages.join(','),
+        expectedContextLanguages: settings.expectedContextLanguages.join(','),
+        outputLanguage: settings.outputLanguage,
+      })],
       error: null,
     };
   }
@@ -98,7 +117,11 @@ export async function checkCapability(settings: SummarizerLanguageOptions): Prom
       browserUserAgent,
       checkedAt,
       sessionOutcome: 'not-attempted',
-      events: [event('availability', `Chrome reported ${availability}.`)],
+      events: [createProvisionEvent('availability', `Chrome reported ${availability}.`, null, {
+        expectedInputLanguages: settings.expectedInputLanguages.join(','),
+        expectedContextLanguages: settings.expectedContextLanguages.join(','),
+        outputLanguage: settings.outputLanguage,
+      })],
       error: null,
     };
   } catch (error) {
@@ -109,7 +132,10 @@ export async function checkCapability(settings: SummarizerLanguageOptions): Prom
       browserUserAgent,
       checkedAt,
       sessionOutcome: 'failed',
-      events: [event('error', message)],
+      events: [createProvisionEvent('error', message, null, {
+        phase: 'availability',
+        errorName: error instanceof Error ? error.name : 'non-error',
+      })],
       error: message,
     };
   }
@@ -125,28 +151,74 @@ export async function createLocalSession(
     throw new Error('Chrome Summarizer API is unavailable.');
   }
 
+  const hasUserActivation = typeof navigator !== 'undefined' && 'userActivation' in navigator
+    ? navigator.userActivation.isActive
+    : false;
+  const visibilityState = typeof document === 'undefined' ? 'unavailable' : document.visibilityState;
+  const startedAtMs = performance.now();
+  let monitorCount = 0;
   const options: Parameters<ChromeSummarizerApi['create']>[0] = {
     ...settings,
     monitor(monitor) {
+      monitorCount += 1;
+      onUpdate(createProvisionEvent('monitor-attached', 'Chrome attached a local-model download monitor.', null, {
+        monitorCount,
+      }));
       monitor.addEventListener('downloadprogress', ({ loaded }) => {
-        onUpdate(event('download-progress', 'Downloading local summarization model.', loaded));
+        const normalizedProgress = Number.isFinite(loaded) ? Math.min(Math.max(loaded, 0), 1) : null;
+        onUpdate(createProvisionEvent(
+          'download-progress',
+          `Chrome download progress event: raw loaded=${loaded}; normalized=${normalizedProgress ?? 'invalid'}.`,
+          normalizedProgress,
+          {
+            rawLoaded: loaded,
+            normalizedProgress,
+            monitorCount,
+          },
+        ));
       });
+      onUpdate(createProvisionEvent('monitor-listener-registered', 'Registered the Chrome download-progress listener.', null, {
+        monitorCount,
+      }));
     },
   };
   if (signal) {
     options.signal = signal;
   }
 
+  onUpdate(createProvisionEvent('session-create-start', 'Calling Chrome Summarizer.create().', null, {
+    type: settings.type,
+    length: settings.length,
+    format: settings.format,
+    preference: settings.preference,
+    expectedInputLanguages: settings.expectedInputLanguages.join(','),
+    expectedContextLanguages: settings.expectedContextLanguages.join(','),
+    outputLanguage: settings.outputLanguage,
+    hasUserActivation,
+    visibilityState,
+  }));
+
   try {
     const session = await api.create(options);
-    onUpdate(event('session-created', 'Created local summarization session.'));
+    onUpdate(createProvisionEvent('session-created', 'Chrome Summarizer.create() resolved.', null, {
+      createDurationMs: Math.round(performance.now() - startedAtMs),
+      monitorCount,
+    }));
     return session;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (signal?.aborted) {
-      onUpdate(event('cancelled', 'Local model provisioning was cancelled.'));
+      onUpdate(createProvisionEvent('cancelled', 'Local model provisioning was cancelled.', null, {
+        createDurationMs: Math.round(performance.now() - startedAtMs),
+        monitorCount,
+      }));
     } else {
-      onUpdate(event('error', message));
+      onUpdate(createProvisionEvent('error', message, null, {
+        phase: 'session-create',
+        errorName: error instanceof Error ? error.name : 'non-error',
+        createDurationMs: Math.round(performance.now() - startedAtMs),
+        monitorCount,
+      }));
     }
     throw error;
   }

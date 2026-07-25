@@ -6,7 +6,7 @@ import {
   type ChromeSummarizerApi,
   type LocalSummarizerSession,
 } from '../src/summarizer';
-import type { SummarizerSettings } from '../src/domain';
+import type { ProvisionEvent, SummarizerSettings } from '../src/domain';
 
 const settings: SummarizerSettings = {
   type: 'key-points',
@@ -70,12 +70,24 @@ describe('Chrome Summarizer capability adapter', () => {
       },
     };
     setSummarizerApiForTesting(api);
-    const updates: string[] = [];
+    const updates: ProvisionEvent[] = [];
 
-    const created = await createLocalSession(settings, (entry) => updates.push(entry.kind));
+    const created = await createLocalSession(settings, (entry) => updates.push(entry));
 
     expect(created).toBe(session);
-    expect(updates).toEqual(['download-progress', 'session-created']);
+    expect(updates.map((entry) => entry.kind)).toEqual([
+      'session-create-start',
+      'monitor-attached',
+      'download-progress',
+      'monitor-listener-registered',
+      'session-created',
+    ]);
+    expect(updates.map((entry) => entry.id)).toHaveLength(new Set(updates.map((entry) => entry.id)).size);
+    expect(updates.map((entry) => entry.elapsedMs)).toEqual([...updates.map((entry) => entry.elapsedMs)].sort((left, right) => left - right));
+    expect(updates.find((entry) => entry.kind === 'download-progress')?.context).toMatchObject({
+      rawLoaded: 0.5,
+      normalizedProgress: 0.5,
+    });
   });
 
   it('records cancellation when session creation observes an aborted signal', async () => {
@@ -88,11 +100,11 @@ describe('Chrome Summarizer capability adapter', () => {
       },
     };
     setSummarizerApiForTesting(api);
-    const updates: string[] = [];
+    const updates: ProvisionEvent[] = [];
 
-    await expect(createLocalSession(settings, (entry) => updates.push(entry.kind), controller.signal)).rejects.toThrow('cancelled by browser');
+    await expect(createLocalSession(settings, (entry) => updates.push(entry), controller.signal)).rejects.toThrow('cancelled by browser');
 
-    expect(updates).toEqual(['cancelled']);
+    expect(updates.map((entry) => entry.kind)).toEqual(['session-create-start', 'cancelled']);
   });
 
   it('records failed session creation without converting it to generated output', async () => {
@@ -103,10 +115,10 @@ describe('Chrome Summarizer capability adapter', () => {
       },
     };
     setSummarizerApiForTesting(api);
-    const updates: string[] = [];
+    const updates: ProvisionEvent[] = [];
 
-    await expect(createLocalSession(settings, (entry) => updates.push(entry.kind))).rejects.toThrow('model provisioning failed');
+    await expect(createLocalSession(settings, (entry) => updates.push(entry))).rejects.toThrow('model provisioning failed');
 
-    expect(updates).toEqual(['error']);
+    expect(updates.map((entry) => entry.kind)).toEqual(['session-create-start', 'error']);
   });
 });

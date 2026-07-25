@@ -25,13 +25,15 @@ Load `.output/chrome-mv3` through `chrome://extensions`:
 ## Run the assessment
 
 1. Click **Check local AI**.
-2. If Chrome reports `downloadable`, click **Download and enable**. This is an explicit user action because Chrome may download the local model.
+2. If Chrome reports `downloadable`, click **Download and enable**. If it reports `downloading`, click **Finish download and enable** to attach the session monitor. Both are explicit user actions because Chrome may download the local model.
 3. Run one fixture/profile pair with **Run selected**, or run every bundled fixture and profile with **Run full suite**.
 4. Inspect deterministic-only and local-AI output. Generated summaries are marked with a Markdown comment boundary.
 5. Complete the reviewer fields for any result you want to evaluate.
 6. Click **Download JSON report**.
 
 The report includes local capability/provisioning diagnostics, policies, measurements, structural checks, generated outputs, final fixture outputs, errors, and reviewer decisions. It contains only bundled synthetic fixture content; the extension has no user-page capture feature.
+
+While provisioning, open **Detailed provisioning log**. It records ordered event IDs, elapsed time, monitor attachment/listener registration, each raw and normalized download-progress value, session-create parameters, and session resolution or rejection. The same evidence is included in the downloaded report.
 
 ## Compression policies
 

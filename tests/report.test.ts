@@ -18,10 +18,13 @@ function reportInput(): Omit<AssessmentReport, 'schemaVersion' | 'suiteVersion' 
       sessionOutcome: 'created',
       events: [
         {
+          id: 'provision-1',
           at: '2026-07-25T00:00:01.000Z',
+          elapsedMs: 42,
           kind: 'session-created',
           detail: 'Session created for fixture assessment.',
           progress: null,
+          context: { createDurationMs: 42, monitorCount: 1 },
         },
       ],
       error: null,

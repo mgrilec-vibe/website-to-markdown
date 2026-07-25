@@ -2,7 +2,7 @@ import { FIXTURES } from './fixtures';
 import { POLICIES } from './policies';
 import { createAssessmentReport, downloadAssessmentReport } from './report';
 import { runAssessmentSuite, runPairedAssessment } from './runner';
-import { checkCapability, createLocalSession } from './summarizer';
+import { checkCapability, createLocalSession, createProvisionEvent } from './summarizer';
 import { getProvisioningAction } from './provisioning';
 import type {
   AssessmentReport,
@@ -87,6 +87,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
     const active = state.activeRun;
     const aiOutput = active?.localAi?.output ?? null;
     const eventLog = state.capability?.events.map((entry) => `${entry.kind}: ${entry.detail}`).join('\n') ?? 'No capability check run.';
+    const eventJson = JSON.stringify(state.capability?.events ?? [], null, 2);
 
     root.innerHTML = `
       <header>
@@ -101,6 +102,10 @@ export function mountAssessmentApp(root: HTMLElement): void {
             <button id="provision-model" class="secondary" ${state.busy || !provisioningAction.actionable ? 'disabled' : ''}>${provisioningAction.label}</button>
           </div>
           <p class="status">Availability: ${escapeHtml(availability)}\n${escapeHtml(eventLog)}</p>
+          <details class="result" ${availability === 'downloading' ? 'open' : ''}>
+            <summary>Detailed provisioning log</summary>
+            <pre>${escapeHtml(eventJson)}</pre>
+          </details>
         </section>
         <section class="card">
           <h2>2. Fixture and compression policy</h2>
@@ -191,7 +196,10 @@ export function mountAssessmentApp(root: HTMLElement): void {
           ...startingCapability,
           sessionOutcome: 'failed',
           error: message,
-          events: [...events, { at: new Date().toISOString(), kind: 'error', detail: message, progress: null }],
+          events: [...events, createProvisionEvent('error', message, null, {
+            phase: 'provisioning-ui',
+            errorName: error instanceof Error ? error.name : 'non-error',
+          })],
         };
         state.error = message;
       } finally {

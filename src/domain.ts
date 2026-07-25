@@ -72,11 +72,24 @@ export type ProvisioningState =
   | 'failed'
   | 'unavailable';
 
+export type ProvisionEventKind =
+  | 'availability'
+  | 'session-create-start'
+  | 'monitor-attached'
+  | 'monitor-listener-registered'
+  | 'download-progress'
+  | 'session-created'
+  | 'cancelled'
+  | 'error';
+
 export interface ProvisionEvent {
+  readonly id: string;
   readonly at: string;
-  readonly kind: 'availability' | 'download-progress' | 'session-created' | 'cancelled' | 'error';
+  readonly elapsedMs: number;
+  readonly kind: ProvisionEventKind;
   readonly detail: string;
   readonly progress: number | null;
+  readonly context: Readonly<Record<string, string | number | boolean | null>>;
 }
 
 export interface CapabilityDiagnostic {
