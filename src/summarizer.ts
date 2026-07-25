@@ -15,13 +15,14 @@ export interface DownloadMonitor {
   addEventListener(type: 'downloadprogress', listener: (event: { loaded: number }) => void): void;
 }
 
+export type SummarizerLanguageOptions = Pick<
+  SummarizerSettings,
+  'expectedInputLanguages' | 'expectedContextLanguages' | 'outputLanguage'
+>;
+
 export interface ChromeSummarizerApi {
-  availability(): Promise<string>;
-  create(options: {
-    type: SummarizerSettings['type'];
-    length: SummarizerSettings['length'];
-    format: SummarizerSettings['format'];
-    preference: SummarizerSettings['preference'];
+  availability(options: SummarizerLanguageOptions): Promise<string>;
+  create(options: SummarizerSettings & {
     monitor: (monitor: DownloadMonitor) => void;
     signal?: AbortSignal;
   }): Promise<LocalSummarizerSession>;
@@ -68,7 +69,7 @@ export function getSummarizerApi(): ChromeSummarizerApi | null {
   return (globalThis as ChromeAiGlobal).Summarizer ?? null;
 }
 
-export async function checkCapability(): Promise<CapabilityDiagnostic> {
+export async function checkCapability(settings: SummarizerLanguageOptions): Promise<CapabilityDiagnostic> {
   const api = getSummarizerApi();
   const checkedAt = now();
   const browserUserAgent = navigator.userAgent;
@@ -86,7 +87,11 @@ export async function checkCapability(): Promise<CapabilityDiagnostic> {
   }
 
   try {
-    const availability = toAvailabilityState(await api.availability());
+    const availability = toAvailabilityState(await api.availability({
+      expectedInputLanguages: settings.expectedInputLanguages,
+      expectedContextLanguages: settings.expectedContextLanguages,
+      outputLanguage: settings.outputLanguage,
+    }));
     return {
       apiPresent: true,
       availability,

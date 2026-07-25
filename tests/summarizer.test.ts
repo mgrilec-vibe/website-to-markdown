@@ -13,6 +13,9 @@ const settings: SummarizerSettings = {
   length: 'medium',
   format: 'markdown',
   preference: 'auto',
+  expectedInputLanguages: ['en'],
+  expectedContextLanguages: ['en'],
+  outputLanguage: 'en',
 };
 
 const session: LocalSummarizerSession = {
@@ -27,7 +30,7 @@ describe('Chrome Summarizer capability adapter', () => {
   it('reports unavailable when no local API is exposed', async () => {
     setSummarizerApiForTesting(null);
 
-    const capability = await checkCapability();
+    const capability = await checkCapability(settings);
 
     expect(capability.apiPresent).toBe(false);
     expect(capability.availability).toBe('unavailable');
@@ -37,12 +40,19 @@ describe('Chrome Summarizer capability adapter', () => {
     'records Chrome availability state %s',
     async (availability) => {
       const api: ChromeSummarizerApi = {
-        availability: async () => availability,
+        availability: async (options) => {
+          expect(options).toEqual({
+            expectedInputLanguages: ['en'],
+            expectedContextLanguages: ['en'],
+            outputLanguage: 'en',
+          });
+          return availability;
+        },
         create: async () => session,
       };
       setSummarizerApiForTesting(api);
 
-      expect((await checkCapability()).availability).toBe(availability);
+      expect((await checkCapability(settings)).availability).toBe(availability);
     },
   );
 
@@ -50,6 +60,9 @@ describe('Chrome Summarizer capability adapter', () => {
     const api: ChromeSummarizerApi = {
       availability: async () => 'downloadable',
       create: async (options) => {
+        expect(options.outputLanguage).toBe('en');
+        expect(options.expectedInputLanguages).toEqual(['en']);
+        expect(options.expectedContextLanguages).toEqual(['en']);
         options.monitor({
           addEventListener: (_type, listener) => listener({ loaded: 0.5 }),
         });

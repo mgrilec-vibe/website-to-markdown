@@ -13,6 +13,8 @@ import type {
   ReviewerInput,
 } from './domain';
 
+const CAPABILITY_SETTINGS = POLICIES.find((candidate) => candidate.id === 'compact')!.summarize!;
+
 interface AppState {
   capability: CapabilityDiagnostic | null;
   fixtureId: string;
@@ -155,7 +157,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
       state.busy = true;
       state.error = null;
       render();
-      state.capability = await checkCapability();
+      state.capability = await checkCapability(CAPABILITY_SETTINGS);
       state.busy = false;
       render();
     });
@@ -164,7 +166,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
       const startingCapability = state.capability;
       if (!startingCapability) return;
 
-      const settings = POLICIES.find((candidate) => candidate.id === 'compact')!.summarize!;
+      const settings = CAPABILITY_SETTINGS;
       const events: ProvisionEvent[] = [...startingCapability.events];
       state.busy = true;
       state.error = null;
@@ -181,7 +183,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
           render();
         });
         session.destroy?.();
-        const refreshed = await checkCapability();
+        const refreshed = await checkCapability(CAPABILITY_SETTINGS);
         state.capability = { ...refreshed, sessionOutcome: 'created', events: [...events, ...refreshed.events] };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -219,7 +221,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
       try {
         const currentFixture = FIXTURES.find((candidate) => candidate.id === state.fixtureId)!;
         const currentPolicy = POLICIES.find((candidate) => candidate.id === state.profileId)!;
-        const capability = state.capability ?? await checkCapability();
+        const capability = state.capability ?? await checkCapability(CAPABILITY_SETTINGS);
         const sessionEvents: ProvisionEvent[] = [];
         state.capability = capability;
         state.activeRun = await runPairedAssessment(currentFixture, currentPolicy, {
@@ -246,7 +248,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
       state.error = null;
       render();
       try {
-        const capability = state.capability ?? await checkCapability();
+        const capability = state.capability ?? await checkCapability(CAPABILITY_SETTINGS);
         const sessionEvents: ProvisionEvent[] = [];
         state.capability = capability;
         const pairedResults = await runAssessmentSuite(FIXTURES, POLICIES, {

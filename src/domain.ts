@@ -40,12 +40,16 @@ export type CompressionProfileId = 'full-source' | 'compact' | 'brief' | 'outlin
 export type SummaryType = 'key-points' | 'tldr' | 'teaser' | 'headline';
 export type SummaryLength = 'short' | 'medium' | 'long';
 export type SummaryPreference = 'auto' | 'speed' | 'capability';
+export type SupportedSummaryLanguage = 'de' | 'en' | 'es' | 'fr' | 'ja';
 
 export interface SummarizerSettings {
   readonly type: SummaryType;
   readonly length: SummaryLength;
   readonly format: 'markdown';
   readonly preference: SummaryPreference;
+  readonly expectedInputLanguages: readonly SupportedSummaryLanguage[];
+  readonly expectedContextLanguages: readonly SupportedSummaryLanguage[];
+  readonly outputLanguage: SupportedSummaryLanguage;
 }
 
 export interface CompressionPolicy {
