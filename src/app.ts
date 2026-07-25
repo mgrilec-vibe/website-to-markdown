@@ -3,6 +3,7 @@ import { POLICIES } from './policies';
 import { createAssessmentReport, downloadAssessmentReport } from './report';
 import { runAssessmentSuite, runPairedAssessment } from './runner';
 import { checkCapability, createLocalSession } from './summarizer';
+import { getProvisioningAction } from './provisioning';
 import type {
   AssessmentReport,
   CapabilityDiagnostic,
@@ -80,6 +81,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
     const fixture = FIXTURES.find((candidate) => candidate.id === state.fixtureId) ?? FIXTURES[0]!;
     const policy = POLICIES.find((candidate) => candidate.id === state.profileId) ?? POLICIES[0]!;
     const availability = state.capability?.availability ?? 'not checked';
+    const provisioningAction = getProvisioningAction(availability);
     const active = state.activeRun;
     const aiOutput = active?.localAi?.output ?? null;
     const eventLog = state.capability?.events.map((entry) => `${entry.kind}: ${entry.detail}`).join('\n') ?? 'No capability check run.';
@@ -94,7 +96,7 @@ export function mountAssessmentApp(root: HTMLElement): void {
           <h2>1. Capability and provisioning</h2>
           <div class="controls">
             <button id="check-capability" ${state.busy ? 'disabled' : ''}>Check local AI</button>
-            <button id="provision-model" class="secondary" ${state.busy || availability !== 'downloadable' ? 'disabled' : ''}>Download and enable</button>
+            <button id="provision-model" class="secondary" ${state.busy || !provisioningAction.actionable ? 'disabled' : ''}>${provisioningAction.label}</button>
           </div>
           <p class="status">Availability: ${escapeHtml(availability)}\n${escapeHtml(eventLog)}</p>
         </section>
@@ -159,20 +161,32 @@ export function mountAssessmentApp(root: HTMLElement): void {
     });
 
     root.querySelector<HTMLButtonElement>('#provision-model')?.addEventListener('click', async () => {
+      const startingCapability = state.capability;
+      if (!startingCapability) return;
+
       const settings = POLICIES.find((candidate) => candidate.id === 'compact')!.summarize!;
-      const events: ProvisionEvent[] = [...(state.capability?.events ?? [])];
+      const events: ProvisionEvent[] = [...startingCapability.events];
       state.busy = true;
       state.error = null;
       render();
       try {
-        const session = await createLocalSession(settings, (entry) => events.push(entry));
+        const session = await createLocalSession(settings, (entry) => {
+          events.push(entry);
+          state.capability = {
+            ...startingCapability,
+            availability: entry.kind === 'session-created' ? 'available' : 'downloading',
+            sessionOutcome: entry.kind === 'session-created' ? 'created' : startingCapability.sessionOutcome,
+            events: [...events],
+          };
+          render();
+        });
         session.destroy?.();
         const refreshed = await checkCapability();
         state.capability = { ...refreshed, sessionOutcome: 'created', events: [...events, ...refreshed.events] };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         state.capability = {
-          ...(state.capability ?? await checkCapability()),
+          ...startingCapability,
           sessionOutcome: 'failed',
           error: message,
           events: [...events, { at: new Date().toISOString(), kind: 'error', detail: message, progress: null }],
