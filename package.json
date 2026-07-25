@@ -1,0 +1,21 @@
+{
+  "name": "chrome-local-ai-assessment-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:chrome": "wxt --browser chrome",
+    "build": "wxt build --browser chrome",
+    "zip": "wxt zip --browser chrome",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "wxt prepare && tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.2.2",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10",
+    "wxt": "0.20.27"
+  }
+}
