@@ -34,5 +34,5 @@
 
 - [x] 5.1 Run the automated deterministic, policy, fallback, report-schema, and report-content test suites.
 - [x] 5.2 Run the built assessment in Chrome without local AI support and verify deterministic-only completion plus an unavailable-state report.
-- [ ] 5.3 Run the built assessment on a qualifying Chrome 138+ desktop profile, verify provisioning and paired local-AI runs, and capture a sample report containing generated fixture outputs.
+- [x] 5.3 Run the built assessment on a qualifying Chrome 138+ desktop profile, verify provisioning and paired local-AI runs, and capture a sample report containing generated fixture outputs.
 - [x] 5.4 Validate that the final distribution can be loaded unpacked and includes all fixtures, expectations, documentation, and report-export capability without external configuration.
