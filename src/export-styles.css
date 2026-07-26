@@ -4,7 +4,17 @@ button, input { font: inherit; }
 button { cursor: pointer; padding: .55rem .8rem; border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); border-radius: .4rem; background: ButtonFace; color: ButtonText; }
 button:hover:not(:disabled) { border-color: CanvasText; }
 button:disabled { cursor: wait; opacity: .65; }
-textarea { box-sizing: border-box; width: 100%; min-height: 28rem; resize: vertical; padding: .75rem; border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); border-radius: .4rem; background: Canvas; color: CanvasText; font: .875rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.markdown-result { box-sizing: border-box; min-height: 28rem; overflow: auto; padding: .75rem; border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); border-radius: .4rem; background: Canvas; color: CanvasText; }
+ .markdown-result > :first-child { margin-top: 0; }
+ .markdown-result > :last-child { margin-bottom: 0; }
+ .markdown-result a { color: LinkText; }
+ .markdown-result blockquote { margin: 1rem 0; padding-left: 1rem; border-left: .25rem solid color-mix(in srgb, CanvasText 30%, transparent); }
+ .markdown-result code { font: .875em/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+ .markdown-result pre { overflow-x: auto; padding: .75rem; border-radius: .4rem; background: color-mix(in srgb, CanvasText 8%, Canvas); }
+ .markdown-result pre code { font-size: .875rem; }
+ .markdown-result table { width: 100%; border-collapse: collapse; }
+ .markdown-result th, .markdown-result td { padding: .4rem .55rem; border: 1px solid color-mix(in srgb, CanvasText 25%, transparent); text-align: left; vertical-align: top; }
+ .markdown-resource { color: color-mix(in srgb, CanvasText 65%, transparent); font-style: italic; }
 .export-popup { width: 22rem; padding: 1rem; }
 .export-popup h1 { margin: 0; font-size: 1.1rem; }
 .export-popup button { width: 100%; margin-top: .75rem; }

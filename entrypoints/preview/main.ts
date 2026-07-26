@@ -10,6 +10,8 @@ import { deriveReadabilityFocus } from '../../src/capture';
 import { detailPolicy, deterministicCompression, deterministicExtractiveCompression, unknownLanguageState, withGeneratedSummaries } from '../../src/export-compression';
 import type { CapabilityState, CompressionResult, ExportMode, LanguageState } from '../../src/export-domain';
 import { loadExport } from '../../src/storage';
+import { copyMarkdown, downloadMarkdown } from '../../src/markdown-export';
+import { createPreviewOutput, renderPreviewMarkdown } from '../../src/preview-output';
 import '../../src/export-styles.css';
 
 const root = document.querySelector<HTMLElement>('#app');
@@ -46,16 +48,15 @@ root.innerHTML = `
       <div class="actions">
         <button id="enable-ai" type="button">Enable local AI</button>
         <button id="generate" type="button">Generate compressed preview</button>
-        <button id="copy" type="button">Copy selected Markdown</button>
+        <button id="copy" type="button">Copy compressed Markdown</button>
         <button id="download" type="button">Download .md</button>
       </div>
     </section>
-    <section class="output-grid">
-      <article><h2>Deterministic result</h2><p id="baseline-metrics" class="muted"></p><textarea id="baseline" readonly spellcheck="false"></textarea></article>
-      <article><h2>Compressed derivative</h2><p id="derived-metrics" class="muted"></p><textarea id="derived" readonly spellcheck="false" placeholder="Deterministic extractive compression is always available."></textarea></article>
-    </section>
   </section>
 `;
+const output = createPreviewOutput(document);
+root.querySelector<HTMLElement>('.export-preview')!.append(output.element);
+
 
 const title = root.querySelector<HTMLHeadingElement>('#title')!;
 const source = root.querySelector<HTMLParagraphElement>('#source')!;
@@ -66,10 +67,7 @@ const detailValue = root.querySelector<HTMLOutputElement>('#detail-value')!;
 const detailDescription = root.querySelector<HTMLParagraphElement>('#detail-description')!;
 const languageNotice = root.querySelector<HTMLElement>('#language')!;
 const modelNotice = root.querySelector<HTMLElement>('#model')!;
-const baselineMetrics = root.querySelector<HTMLParagraphElement>('#baseline-metrics')!;
-const derivedMetrics = root.querySelector<HTMLParagraphElement>('#derived-metrics')!;
-const baselineView = root.querySelector<HTMLTextAreaElement>('#baseline')!;
-const derivedView = root.querySelector<HTMLTextAreaElement>('#derived')!;
+const { baselineMetrics, derivedMetrics, baselineView, derivedView } = output;
 const enableAi = root.querySelector<HTMLButtonElement>('#enable-ai')!;
 const generate = root.querySelector<HTMLButtonElement>('#generate')!;
 const copy = root.querySelector<HTMLButtonElement>('#copy')!;
@@ -90,9 +88,9 @@ function render(): void {
   const policy = detailPolicy(detail);
   detailValue.value = String(detail);
   detailDescription.textContent = `${policy.description} Output size is measured after generation, not promised in advance.`;
-  baselineView.value = baseline.markdown;
+  renderPreviewMarkdown(baselineView, baseline.markdown);
   baselineMetrics.textContent = `${baseline.metadata.words} words · ${baseline.metadata.bytes} bytes · ${baseline.removedBlockIds.length} deterministic removals`;
-  derivedView.value = derived.markdown;
+  renderPreviewMarkdown(derivedView, derived.markdown);
   derivedMetrics.textContent = `${derived.metadata.words} words · ${derived.metadata.bytes} bytes · ${derived.metadata.generatedSummaryCount} ${derived.metadata.summaryOrigin === 'local-ai' ? 'local-AI' : 'deterministic extractive'} summaries`;
   const confidence = language.confidence === undefined ? '' : ` (${Math.round(language.confidence * 100)}% confidence)`;
   languageNotice.textContent = language.warning ?? `Language: ${language.primaryLanguage ?? 'unknown'}${confidence}; supported for local summaries.`;
@@ -162,20 +160,19 @@ generate.addEventListener('click', async () => {
 });
 
 copy.addEventListener('click', async () => {
-  await navigator.clipboard.writeText(derived.markdown);
+  await copyMarkdown(derived.markdown, navigator.clipboard);
   copy.textContent = 'Copied';
-  window.setTimeout(() => { copy.textContent = 'Copy selected Markdown'; }, 1_500);
+  window.setTimeout(() => { copy.textContent = 'Copy compressed Markdown'; }, 1_500);
 });
 
 download.addEventListener('click', async () => {
-  const markdown = derived.markdown;
-  const safeTitle = captured.metadata.title.normalize('NFKD').replace(/[^\w.-]+/gu, '-').replace(/^-+|-+$/gu, '').slice(0, 80) || 'page';
-  const url = URL.createObjectURL(new Blob([markdown], { type: 'text/markdown;charset=utf-8' }));
-  try {
-    await chrome.downloads.download({ url, filename: `${safeTitle}.md`, conflictAction: 'uniquify', saveAs: true });
-  } finally {
-    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
-  }
+  await downloadMarkdown(
+    derived.markdown,
+    captured.metadata.title,
+    chrome.downloads,
+    URL,
+    (callback, delay) => window.setTimeout(callback, delay),
+  );
 });
 
 render();
