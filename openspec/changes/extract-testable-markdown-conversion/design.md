@@ -27,6 +27,7 @@ The repository already has Linkedom for Node tests, an unused `tests/fixtures/ex
 Create a local `src/conversion/` module family: `core` for normalization and Turndown rules, `classify` for block classification, `browser-parser` for production `DOMParser`, `report` for benchmark reporting, and `index` for public composition. The conversion API receives concrete HTML, base URL, inherited limitations, and an injected parser.
 
 Focused-versus-complete selection remains a small pure orchestration helper operating on `CapturedPage`; the core does not accept `ExportMode`. Production supplies the browser parser. Tests supply a Linkedom parser. Readability focus extraction receives a parser through the same dependency direction; use a jsdom-backed Node adapter for Readability tests because that is the library's documented Node integration.
+The browser parser inserts a `<base>` element using the captured source URL before normalization so parser-level relative URL resolution matches the exported page rather than `about:blank`.
 
 **Alternatives considered:** retaining optional ambient-parser defaults keeps hidden runtime coupling; a new package adds release and build overhead without making imports more testable; a DOM-agnostic AST rewrite would replace a proven Turndown behavior surface and is outside the requested scope.
 
@@ -55,8 +56,7 @@ The existing Markdown-only assessment fixtures remain separate because they star
 Introduce conversion report types alongside the conversion report builder, reusing `CapturedPage`, `MarkdownBlock`, and `BlockKind` from `src/export-domain.ts` rather than creating another domain module. The builder follows `src/report.ts`: caller-provided run data, version/timestamp defaults, serialization, and browser-safe download behavior. The benchmark writes `.output/conversion-report.json` with environment identity, per-fixture timings and output/golden hashes, limitations, check status, and aggregate failures.
 
 ## Risks / Trade-offs
-
-- [Linkedom and Chromium parse malformed HTML differently] → Keep a small browser parity smoke set for representative fixtures; use stable fixture inputs and treat Node output as the regression baseline.
+- [Linkedom and Chromium parse malformed HTML differently] → Compare Linkedom and jsdom on representative fixtures as a browserless parser-parity smoke check; verify browser capture separately through the extension release smoke path.
 - [Readability output changes on dependency upgrade] → Record focused-output and final-Markdown goldens; review intentional golden changes with the dependency update.
 - [Benchmark numbers vary by host] → Report environment and per-stage measurements; use benchmarks for relative regression detection, not cross-machine absolute thresholds.
 - [Compression API migration misses a path] → Typecheck all consumers and add tests that prove compression accepts precomputed conversions without HTML parser access.

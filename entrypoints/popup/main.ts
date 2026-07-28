@@ -1,4 +1,5 @@
 import { deriveReadabilityFocus } from '../../src/capture';
+import { browserHtmlParser } from '../../src/conversion';
 import { copyMarkdown, downloadMarkdown } from '../../src/markdown-export';
 import { mountExportPopup } from '../../src/popup-app';
 import { loadExport } from '../../src/storage';
@@ -11,7 +12,7 @@ if (!root) throw new Error('Export popup root is missing.');
 mountExportPopup(root, {
   captureActiveTab: async () => chrome.runtime.sendMessage({ type: 'export-active-tab' }) as Promise<{ id?: string; error?: string }>,
   loadExport,
-  deriveReadabilityFocus,
+  deriveReadabilityFocus: (captured) => deriveReadabilityFocus(captured, browserHtmlParser),
   createFinalExport,
   copyFinalMarkdown: async (markdown) => copyMarkdown(markdown, navigator.clipboard),
   downloadFinalMarkdown: async (markdown, title) => downloadMarkdown(

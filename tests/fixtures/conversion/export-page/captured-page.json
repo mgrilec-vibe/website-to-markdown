@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "title": "Fixture documentation page",
+    "sourceUrl": "https://example.com/docs/fixture",
+    "canonicalUrl": "https://example.com/canonical-fixture",
+    "capturedAt": "2026-07-28T00:00:00.000Z",
+    "pageLanguage": "en"
+  },
+  "limitations": [],
+  "expectations": {
+    "complete": {
+      "blockKinds": ["provenance", "protected", "removable", "protected", "protected", "protected", "protected", "protected", "summarizable", "protected"],
+      "removableBlockIds": ["block-2"],
+      "limitations": []
+    },
+    "focused": {
+      "blockKinds": ["provenance", "protected", "protected", "protected", "protected", "protected", "summarizable", "protected"],
+      "removableBlockIds": [],
+      "limitations": []
+    }
+  }
+}

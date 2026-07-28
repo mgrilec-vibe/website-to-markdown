@@ -1,4 +1,5 @@
 import { Readability } from '@mozilla/readability';
+import type { HtmlParser } from './conversion';
 import type { CapturedPage } from './export-domain';
 
 const NON_CONTENT_SELECTORS = [
@@ -69,8 +70,8 @@ export function captureActiveDocument(source: Document): CapturedPage {
   };
 }
 
-export function deriveReadabilityFocus(captured: CapturedPage): CapturedPage {
-  const snapshot = new DOMParser().parseFromString(captured.completeHtml, 'text/html');
+export function deriveReadabilityFocus(captured: CapturedPage, parser: HtmlParser): CapturedPage {
+  const snapshot = parser.parseHtml(captured.completeHtml, captured.metadata.sourceUrl);
   const article = new Readability(cleanedClone(snapshot, true), { keepClasses: false }).parse();
   if (!article?.content) return captured;
   return {
