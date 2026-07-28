@@ -1,5 +1,4 @@
 import TurndownService from 'turndown';
-import type { CapturedPage, ExportMode, MarkdownBlock } from './export-domain';
 
 const FOCUS_NOISE = [
   'nav', 'aside', 'form', 'dialog', '[role="dialog"]', '[aria-modal="true"]',
@@ -9,8 +8,18 @@ const FOCUS_NOISE = [
 
 const ALWAYS_REMOVE = 'script,style,noscript,template';
 
-export interface MarkdownConversion {
-  readonly blocks: readonly MarkdownBlock[];
+export interface HtmlParser {
+  parseHtml(html: string, baseUrl: string): Document;
+}
+export interface ConversionInput {
+  readonly html: string;
+  readonly baseUrl: string;
+  readonly inheritedLimitations: readonly string[];
+  readonly removeFocusNoise: boolean;
+}
+
+export interface HtmlConversion {
+  readonly markdown: string;
   readonly limitations: readonly string[];
 }
 
@@ -29,16 +38,26 @@ function codeFence(content: string): string {
   return '`'.repeat(Math.max(3, longest + 1));
 }
 
-function tableMarkdown(table: HTMLTableElement): string {
-  const rows = [...table.rows];
+function tableCells(row: Element): readonly Element[] {
+  return [...row.children].filter((cell) => cell.tagName === 'TH' || cell.tagName === 'TD');
+}
+
+function spanValue(cell: Element, attribute: 'colspan' | 'rowspan'): number {
+  const value = Number(cell.getAttribute(attribute) ?? '1');
+  return Number.isInteger(value) && value > 0 ? value : 1;
+}
+
+function tableMarkdown(table: Element): string {
+  const rows = [...table.querySelectorAll('tr')];
   if (rows.length === 0) return '';
-  const complex = rows.some((row) => [...row.cells].some((cell) => cell.colSpan !== 1 || cell.rowSpan !== 1));
+  const cells = rows.map(tableCells);
+  const complex = cells.some((row) => row.some((cell) => spanValue(cell, 'colspan') !== 1 || spanValue(cell, 'rowspan') !== 1));
   const caption = table.querySelector('caption')?.textContent?.trim();
   if (complex) {
-    const body = rows.map((row) => [...row.cells].map((cell) => cell.textContent?.trim() ?? '').join(' | ')).join('\n');
+    const body = cells.map((row) => row.map((cell) => cell.textContent?.trim() ?? '').join(' | ')).join('\n');
     return `${caption ? `**${caption}**\n\n` : ''}> Conversion limitation: this table has merged cells and is represented as rows.\n> ${body.replace(/\n/g, '\n> ')}`;
   }
-  const values = rows.map((row) => [...row.cells].map((cell) => (cell.textContent ?? '').trim().replace(/\|/g, '\\|')));
+  const values = cells.map((row) => row.map((cell) => (cell.textContent ?? '').trim().replace(/\|/g, '\\|')));
   const width = Math.max(...values.map((row) => row.length));
   const header = values[0] ?? [];
   const normalizedHeader = Array.from({ length: width }, (_, index) => header[index] || '');
@@ -51,11 +70,11 @@ function tableMarkdown(table: HTMLTableElement): string {
   return `${caption ? `**${caption}**\n\n` : ''}${lines.join('\n')}`;
 }
 
-function prepareDocument(html: string, mode: ExportMode, baseUrl: string): { document: Document; limitations: string[] } {
-  const parsed = new DOMParser().parseFromString(html, 'text/html');
-  const limitations: string[] = [];
+function prepareDocument(input: ConversionInput, parser: HtmlParser): { document: Document; limitations: string[] } {
+  const parsed = parser.parseHtml(input.html, input.baseUrl);
+  const limitations = [...input.inheritedLimitations];
   parsed.querySelectorAll(ALWAYS_REMOVE).forEach((node) => node.remove());
-  if (mode === 'focused') parsed.querySelectorAll(FOCUS_NOISE).forEach((node) => node.remove());
+  if (input.removeFocusNoise) parsed.querySelectorAll(FOCUS_NOISE).forEach((node) => node.remove());
 
   parsed.querySelectorAll('*').forEach((node) => {
     for (const attribute of [...node.attributes]) {
@@ -63,12 +82,12 @@ function prepareDocument(html: string, mode: ExportMode, baseUrl: string): { doc
     }
   });
   parsed.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((anchor) => {
-    const href = safeUrl(anchor.getAttribute('href'), baseUrl);
+    const href = safeUrl(anchor.getAttribute('href'), input.baseUrl);
     if (href) anchor.href = href;
     else anchor.removeAttribute('href');
   });
   parsed.querySelectorAll<HTMLImageElement>('img[src]').forEach((image) => {
-    const src = safeUrl(image.getAttribute('src'), baseUrl);
+    const src = safeUrl(image.getAttribute('src'), input.baseUrl);
     if (src) image.src = src;
     else {
       limitations.push(`Image omitted because its source URL is unsupported: ${image.alt || 'unlabelled image'}.`);
@@ -78,8 +97,8 @@ function prepareDocument(html: string, mode: ExportMode, baseUrl: string): { doc
   return { document: parsed, limitations };
 }
 
-function convertHtml(html: string, mode: ExportMode, baseUrl: string): { markdown: string; limitations: readonly string[] } {
-  const prepared = prepareDocument(html, mode, baseUrl);
+export function convertHtml(input: ConversionInput, parser: HtmlParser): HtmlConversion {
+  const prepared = prepareDocument(input, parser);
   const service = new TurndownService({
     bulletListMarker: '-',
     codeBlockStyle: 'fenced',
@@ -98,34 +117,15 @@ function convertHtml(html: string, mode: ExportMode, baseUrl: string): { markdow
   });
   service.addRule('gfmTable', {
     filter: (node) => node.nodeName === 'TABLE',
-    replacement: (_content, node) => `\n\n${tableMarkdown(node as HTMLTableElement)}\n\n`,
+    replacement: (_content, node) => `\n\n${tableMarkdown(node as Element)}\n\n`,
   });
   service.addRule('taskListItem', {
     filter: (node) => node.nodeName === 'INPUT' && (node as HTMLInputElement).type === 'checkbox',
-    replacement: (_content, node) => (node as HTMLInputElement).checked ? '[x] ' : '[ ] ',
+    replacement: (_content, node) => {
+      const input = node as HTMLInputElement;
+      return input.checked || input.hasAttribute('checked') ? '[x] ' : '[ ] ';
+    },
   });
   const markdown = service.turndown(prepared.document.body).replace(/\r\n?/g, '\n').replace(/[ \t]+\n/g, '\n').trim();
   return { markdown: `${markdown}\n`, limitations: prepared.limitations };
-}
-
-function classify(markdown: string, sourceOrder: number): MarkdownBlock {
-  const trimmed = markdown.trim();
-  const protectedBlock = /^#{1,6}\s|^```|^\|.+\|\n\|[-:| ]+\||^>|!?\[[^\]]*\]\([^)]*\)/m.test(trimmed);
-  const removable = /^(?:cookie settings|accept cookies|manage consent|subscribe(?: to our newsletter)?|share this article)$/iu.test(trimmed);
-  return {
-    id: `block-${sourceOrder + 1}`,
-    markdown: `${trimmed}\n`,
-    kind: removable ? 'removable' : protectedBlock ? 'protected' : 'summarizable',
-    sourceOrder,
-  };
-}
-
-export function convertCapturedPage(captured: CapturedPage, mode: ExportMode): MarkdownConversion {
-  const html = mode === 'focused' && captured.focusedHtml ? captured.focusedHtml : captured.completeHtml;
-  const converted = convertHtml(html, mode, captured.metadata.sourceUrl);
-  const blocks = [
-    { id: 'provenance', markdown: '', kind: 'provenance' as const, sourceOrder: -1 },
-    ...converted.markdown.split(/\n{2,}/).filter(Boolean).map(classify),
-  ];
-  return { blocks, limitations: [...captured.limitations, ...converted.limitations] };
 }

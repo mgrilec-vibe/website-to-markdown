@@ -10,7 +10,8 @@
     "zip": "wxt zip --browser chrome",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "wxt prepare && tsc --noEmit"
+    "typecheck": "wxt prepare && tsc --noEmit",
+    "benchmark:conversion": "CONVERSION_BENCHMARK=1 vitest run tests/conversion-benchmark.test.ts"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
@@ -20,7 +21,9 @@
   },
   "devDependencies": {
     "@types/chrome": "0.2.2",
+    "@types/jsdom": "^28.0.3",
     "@types/turndown": "^5.0.5",
+    "jsdom": "^30.0.0",
     "linkedom": "^0.18.13",
     "typescript": "7.0.2",
     "vitest": "4.1.10",

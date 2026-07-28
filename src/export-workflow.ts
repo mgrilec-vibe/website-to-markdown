@@ -17,6 +17,7 @@ import {
   unknownLanguageState,
   withGeneratedSummaries,
 } from './export-compression';
+import { browserHtmlParser, convertCapturedPage, type HtmlParser, type MarkdownConversion } from './conversion';
 import type {
   CapabilityState,
   CapturedPage,
@@ -29,6 +30,7 @@ import type {
 } from './export-domain';
 
 export interface BrowserSummaryAdapter {
+  readonly htmlParser: HtmlParser;
   readonly checkCapability: () => Promise<CapabilityState>;
   readonly createLanguageDetector: (options?: LocalAiCreateOptions) => Promise<LanguageDetectorSession>;
   readonly detectEligibleLanguage: (prose: string, declaredLanguage: string | undefined, detector: LanguageDetectorSession | undefined) => Promise<LanguageState>;
@@ -37,6 +39,7 @@ export interface BrowserSummaryAdapter {
 }
 
 const browserSummaryAdapter: BrowserSummaryAdapter = {
+  htmlParser: browserHtmlParser,
   checkCapability: checkLocalAiCapability,
   createLanguageDetector,
   detectEligibleLanguage,
@@ -53,6 +56,7 @@ export interface FinalExport {
 
 function customFallback(
   captured: CapturedPage,
+  conversion: MarkdownConversion,
   mode: ExportMode,
   detail: number,
   language: LanguageState,
@@ -60,7 +64,7 @@ function customFallback(
   browserFailure: string,
 ): FinalExport {
   return {
-    result: deterministicExtractiveCompression(captured, mode, detail, language, 'browser'),
+    result: deterministicExtractiveCompression(captured, conversion, mode, detail, language, 'browser'),
     capability,
     language,
     browserFailure,
@@ -74,19 +78,20 @@ export async function createFinalExport(
   provider: SummarizationProvider,
   adapter: BrowserSummaryAdapter = browserSummaryAdapter,
 ): Promise<FinalExport> {
+  const conversion = convertCapturedPage(captured, mode, adapter.htmlParser);
   const language = unknownLanguageState(captured.metadata.pageLanguage);
   const unchecked: CapabilityState = { detector: 'unchecked', summarizer: 'unchecked' };
-  if (provider === 'none') return { result: completeCompression(captured, mode, language), capability: unchecked, language };
+  if (provider === 'none') return { result: completeCompression(captured, conversion, mode, language), capability: unchecked, language };
   if (detailPolicy(detail).detail === 100) {
     return {
-      result: deterministicCompression(captured, mode, detail, language, provider),
+      result: deterministicCompression(captured, conversion, mode, detail, language, provider),
       capability: unchecked,
       language,
     };
   }
   if (provider === 'custom') {
     return {
-      result: deterministicExtractiveCompression(captured, mode, detail, language, 'custom'),
+      result: deterministicExtractiveCompression(captured, conversion, mode, detail, language, 'custom'),
       capability: unchecked,
       language,
     };
@@ -97,21 +102,21 @@ export async function createFinalExport(
     capability = await adapter.checkCapability();
   } catch (error) {
     const browserFailure = error instanceof Error ? error.message : 'Chrome local summarization could not be checked.';
-    return customFallback(captured, mode, detail, language, { detector: 'failed', summarizer: 'failed', summarizerError: browserFailure }, browserFailure);
+    return customFallback(captured, conversion, mode, detail, language, { detector: 'failed', summarizer: 'failed', summarizerError: browserFailure }, browserFailure);
   }
   if (capability.detector === 'unavailable' || capability.detector === 'cancelled' || capability.detector === 'failed' || capability.summarizer === 'unavailable' || capability.summarizer === 'cancelled' || capability.summarizer === 'failed') {
     const browserFailure = capability.detectorError ?? capability.summarizerError ?? 'Chrome local summarization is unavailable on this device.';
-    return customFallback(captured, mode, detail, language, capability, browserFailure);
+    return customFallback(captured, conversion, mode, detail, language, capability, browserFailure);
   }
 
   let session: SummarizerSession | undefined;
   try {
     const detector = await adapter.createLanguageDetector();
-    const baseline = deterministicCompression(captured, mode, detail, language, 'browser');
+    const baseline = deterministicCompression(captured, conversion, mode, detail, language, 'browser');
     const prose = baseline.summarizableBlocks.map((block) => block.markdown).join('\n\n');
     const detectedLanguage = await adapter.detectEligibleLanguage(prose, captured.metadata.pageLanguage, detector);
     if (!detectedLanguage.supported) {
-      return customFallback(captured, mode, detail, detectedLanguage, capability, detectedLanguage.warning ?? 'Chrome local summarization does not support this page language.');
+      return customFallback(captured, conversion, mode, detail, detectedLanguage, capability, detectedLanguage.warning ?? 'Chrome local summarization does not support this page language.');
     }
     session = await adapter.createSummarizer(detailPolicy(detail), detectedLanguage);
     const summary = await adapter.summarizeBlocks(session, baseline.summarizableBlocks);
@@ -122,7 +127,7 @@ export async function createFinalExport(
     };
   } catch (error) {
     const browserFailure = error instanceof Error ? error.message : 'Chrome local summarization failed.';
-    return customFallback(captured, mode, detail, language, { ...capability, summarizer: 'failed', summarizerError: browserFailure }, browserFailure);
+    return customFallback(captured, conversion, mode, detail, language, { ...capability, summarizer: 'failed', summarizerError: browserFailure }, browserFailure);
   } finally {
     session?.destroy?.();
   }

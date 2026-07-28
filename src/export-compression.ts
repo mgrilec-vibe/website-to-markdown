@@ -9,7 +9,7 @@ import type {
   SummarizationProvider,
   SummaryOrigin,
 } from './export-domain';
-import { convertCapturedPage } from './export-markdown';
+import type { MarkdownConversion } from './conversion';
 
 const encoder = new TextEncoder();
 
@@ -133,10 +133,10 @@ function resultFromBlocks(
 
 export function completeCompression(
   captured: CapturedPage,
+  conversion: MarkdownConversion,
   mode: ExportMode,
   language = unknownLanguageState(captured.metadata.pageLanguage),
 ): CompressionResult {
-  const conversion = convertCapturedPage(captured, mode);
   const removable = conversion.blocks.filter((block) => block.kind === 'removable');
   const visible = conversion.blocks.filter((block) => block.kind !== 'removable');
   return resultFromBlocks(captured, mode, conversion.limitations, 100, language, 'none', visible, removable, []);
@@ -144,13 +144,13 @@ export function completeCompression(
 
 export function deterministicCompression(
   captured: CapturedPage,
+  conversion: MarkdownConversion,
   mode: ExportMode,
   detail: number,
   language = unknownLanguageState(captured.metadata.pageLanguage),
   requestedProvider: SummarizationProvider = 'custom',
 ): CompressionResult {
   const policy = detailPolicy(detail);
-  const conversion = convertCapturedPage(captured, mode);
   const removable = conversion.blocks.filter((block) => block.kind === 'removable');
   const eligible = conversion.blocks.filter((block) => block.kind === 'summarizable');
   const retained = retainedSummarizable(eligible, policy.retainRatio);
@@ -303,12 +303,13 @@ export function withSummaries(
 
 export function deterministicExtractiveCompression(
   captured: CapturedPage,
+  conversion: MarkdownConversion,
   mode: ExportMode,
   detail: number,
   language = unknownLanguageState(captured.metadata.pageLanguage),
   requestedProvider: SummarizationProvider = 'custom',
 ): CompressionResult {
-  const result = deterministicCompression(captured, mode, detail, language, requestedProvider);
+  const result = deterministicCompression(captured, conversion, mode, detail, language, requestedProvider);
   return result.metadata.detail === 100 ? result : withSummaries(result, extractiveSummaries(result.summarizableBlocks, detail), 'deterministic-diverse-extractive');
 }
 
