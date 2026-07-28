@@ -1,0 +1,2 @@
+description = "Revise an existing OpenSpec change's planning artifacts."
+prompt = "Revise OpenSpec change ${input:change} according to ${input:request}. Use the `openspec-update-change` skill and follow its workflow."

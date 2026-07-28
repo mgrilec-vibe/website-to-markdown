@@ -1,0 +1,1047 @@
+lockfile_version: '1'
+generated_at: '2026-07-26T23:54:09.887184+00:00'
+apm_version: 0.26.0
+dependencies:
+- repo_url: mgrilec-vibe/openspec-workflows
+  name: openspec-workflows
+  host: github.com
+  resolved_commit: 6f7e594f5f2a5fbd94a906b090a0530ec0f76eca
+  version: 1.1.0
+  package_type: apm_package
+  deployed_files:
+  - .agents/skills/openspec-apply-change
+  - .agents/skills/openspec-apply-change/SKILL.md
+  - .agents/skills/openspec-archive-change
+  - .agents/skills/openspec-archive-change/SKILL.md
+  - .agents/skills/openspec-explore
+  - .agents/skills/openspec-explore/SKILL.md
+  - .agents/skills/openspec-init-repository
+  - .agents/skills/openspec-init-repository/SKILL.md
+  - .agents/skills/openspec-propose
+  - .agents/skills/openspec-propose-worktree
+  - .agents/skills/openspec-propose-worktree/SKILL.md
+  - .agents/skills/openspec-propose/SKILL.md
+  - .agents/skills/openspec-sync-specs
+  - .agents/skills/openspec-sync-specs/SKILL.md
+  - .agents/skills/openspec-update-change
+  - .agents/skills/openspec-update-change/SKILL.md
+  - .claude/commands/opsx-apply.md
+  - .claude/commands/opsx-archive.md
+  - .claude/commands/opsx-explore.md
+  - .claude/commands/opsx-init.md
+  - .claude/commands/opsx-propose-worktree.md
+  - .claude/commands/opsx-propose.md
+  - .claude/commands/opsx-sync.md
+  - .claude/commands/opsx-update.md
+  - .claude/skills/openspec-apply-change
+  - .claude/skills/openspec-apply-change/SKILL.md
+  - .claude/skills/openspec-archive-change
+  - .claude/skills/openspec-archive-change/SKILL.md
+  - .claude/skills/openspec-explore
+  - .claude/skills/openspec-explore/SKILL.md
+  - .claude/skills/openspec-init-repository
+  - .claude/skills/openspec-init-repository/SKILL.md
+  - .claude/skills/openspec-propose
+  - .claude/skills/openspec-propose-worktree
+  - .claude/skills/openspec-propose-worktree/SKILL.md
+  - .claude/skills/openspec-propose/SKILL.md
+  - .claude/skills/openspec-sync-specs
+  - .claude/skills/openspec-sync-specs/SKILL.md
+  - .claude/skills/openspec-update-change
+  - .claude/skills/openspec-update-change/SKILL.md
+  - .cursor/commands/opsx-apply.md
+  - .cursor/commands/opsx-archive.md
+  - .cursor/commands/opsx-explore.md
+  - .cursor/commands/opsx-init.md
+  - .cursor/commands/opsx-propose-worktree.md
+  - .cursor/commands/opsx-propose.md
+  - .cursor/commands/opsx-sync.md
+  - .cursor/commands/opsx-update.md
+  - .gemini/commands/opsx-apply.toml
+  - .gemini/commands/opsx-archive.toml
+  - .gemini/commands/opsx-explore.toml
+  - .gemini/commands/opsx-init.toml
+  - .gemini/commands/opsx-propose-worktree.toml
+  - .gemini/commands/opsx-propose.toml
+  - .gemini/commands/opsx-sync.toml
+  - .gemini/commands/opsx-update.toml
+  - .github/prompts/opsx-apply.prompt.md
+  - .github/prompts/opsx-archive.prompt.md
+  - .github/prompts/opsx-explore.prompt.md
+  - .github/prompts/opsx-init.prompt.md
+  - .github/prompts/opsx-propose-worktree.prompt.md
+  - .github/prompts/opsx-propose.prompt.md
+  - .github/prompts/opsx-sync.prompt.md
+  - .github/prompts/opsx-update.prompt.md
+  - .kiro/skills/openspec-apply-change
+  - .kiro/skills/openspec-apply-change/SKILL.md
+  - .kiro/skills/openspec-archive-change
+  - .kiro/skills/openspec-archive-change/SKILL.md
+  - .kiro/skills/openspec-explore
+  - .kiro/skills/openspec-explore/SKILL.md
+  - .kiro/skills/openspec-init-repository
+  - .kiro/skills/openspec-init-repository/SKILL.md
+  - .kiro/skills/openspec-propose
+  - .kiro/skills/openspec-propose-worktree
+  - .kiro/skills/openspec-propose-worktree/SKILL.md
+  - .kiro/skills/openspec-propose/SKILL.md
+  - .kiro/skills/openspec-sync-specs
+  - .kiro/skills/openspec-sync-specs/SKILL.md
+  - .kiro/skills/openspec-update-change
+  - .kiro/skills/openspec-update-change/SKILL.md
+  - .opencode/commands/opsx-apply.md
+  - .opencode/commands/opsx-archive.md
+  - .opencode/commands/opsx-explore.md
+  - .opencode/commands/opsx-init.md
+  - .opencode/commands/opsx-propose-worktree.md
+  - .opencode/commands/opsx-propose.md
+  - .opencode/commands/opsx-sync.md
+  - .opencode/commands/opsx-update.md
+  - .windsurf/workflows/opsx-apply.md
+  - .windsurf/workflows/opsx-archive.md
+  - .windsurf/workflows/opsx-explore.md
+  - .windsurf/workflows/opsx-init.md
+  - .windsurf/workflows/opsx-propose-worktree.md
+  - .windsurf/workflows/opsx-propose.md
+  - .windsurf/workflows/opsx-sync.md
+  - .windsurf/workflows/opsx-update.md
+  deployed_file_hashes:
+    .agents/skills/openspec-apply-change/SKILL.md: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+    .agents/skills/openspec-archive-change/SKILL.md: sha256:49aa064ce645212eb8675b6b11ccedfac058a3815ffb4344b01f2f27acee3c26
+    .agents/skills/openspec-explore/SKILL.md: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+    .agents/skills/openspec-init-repository/SKILL.md: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
+    .agents/skills/openspec-propose-worktree/SKILL.md: sha256:ad61d661f53d9f032629c45c102d45817d778b47d1cee3fdb5efed543bea1f8c
+    .agents/skills/openspec-propose/SKILL.md: sha256:4bbf69e35eaa12b4955143fa329da3bbb54953bd8d9e8233255c0189323e8ddb
+    .agents/skills/openspec-sync-specs/SKILL.md: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
+    .agents/skills/openspec-update-change/SKILL.md: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
+    .claude/commands/opsx-apply.md: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+    .claude/commands/opsx-archive.md: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+    .claude/commands/opsx-explore.md: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+    .claude/commands/opsx-init.md: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+    .claude/commands/opsx-propose-worktree.md: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+    .claude/commands/opsx-propose.md: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+    .claude/commands/opsx-sync.md: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+    .claude/commands/opsx-update.md: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
+    .claude/skills/openspec-apply-change/SKILL.md: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+    .claude/skills/openspec-archive-change/SKILL.md: sha256:49aa064ce645212eb8675b6b11ccedfac058a3815ffb4344b01f2f27acee3c26
+    .claude/skills/openspec-explore/SKILL.md: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+    .claude/skills/openspec-init-repository/SKILL.md: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
+    .claude/skills/openspec-propose-worktree/SKILL.md: sha256:ad61d661f53d9f032629c45c102d45817d778b47d1cee3fdb5efed543bea1f8c
+    .claude/skills/openspec-propose/SKILL.md: sha256:4bbf69e35eaa12b4955143fa329da3bbb54953bd8d9e8233255c0189323e8ddb
+    .claude/skills/openspec-sync-specs/SKILL.md: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
+    .claude/skills/openspec-update-change/SKILL.md: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
+    .cursor/commands/opsx-apply.md: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+    .cursor/commands/opsx-archive.md: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+    .cursor/commands/opsx-explore.md: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+    .cursor/commands/opsx-init.md: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+    .cursor/commands/opsx-propose-worktree.md: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+    .cursor/commands/opsx-propose.md: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+    .cursor/commands/opsx-sync.md: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+    .cursor/commands/opsx-update.md: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
+    .gemini/commands/opsx-apply.toml: sha256:a6528b0769fc2baaa4f2e8f5d9cd36cd3c87c78ba324c5c7694788bf5ef2b8de
+    .gemini/commands/opsx-archive.toml: sha256:d6ba98bb7d089ad71baff7642ec68b03b97334b213395367825f5077aaf99675
+    .gemini/commands/opsx-explore.toml: sha256:0cbb4658d31a86a0bf7b846126fbd5e67d97ea09ed583d2fe382e86ccd3b7e8c
+    .gemini/commands/opsx-init.toml: sha256:22bb3b7c7852fcffe3645567df753376dc003cd51d4fe07b39a1f93118eee34a
+    .gemini/commands/opsx-propose-worktree.toml: sha256:4b80a4671632f52e1ddeb0ff13ed6905c188715b76f929227b00fa3868491615
+    .gemini/commands/opsx-propose.toml: sha256:109d1548ea52c512bdf42806faf811f242bdfde94bbab73e6d4c1b6aea592c59
+    .gemini/commands/opsx-sync.toml: sha256:29c17c96bf87207e062cb2c148af250caf47f6a10214adaa2607f363784a09e9
+    .gemini/commands/opsx-update.toml: sha256:8455cbdec73a5513bf472adeb476fc6a75ed7925a8f4e01df1436d3137ad3274
+    .github/prompts/opsx-apply.prompt.md: sha256:83eedb3102e1ea08effd65774d799553f346e73284dd7468ac5544f62396b63e
+    .github/prompts/opsx-archive.prompt.md: sha256:f6712118864f7a7b9d7782f51ba89670b1ac2661bf74cdaa093289e3fc11b3fc
+    .github/prompts/opsx-explore.prompt.md: sha256:2a2290b5108e839272a0bbced7b4fa2fbc8dff9c437fc19e2033076ccb55b8e1
+    .github/prompts/opsx-init.prompt.md: sha256:1bf2d2e4fbad57748fcf10b281f8906ddf48016def82e1c474ac5817278ba5f1
+    .github/prompts/opsx-propose-worktree.prompt.md: sha256:7751699e052827ad60e88558fe53bf87b423e5257b18a733752f83bde1214a5c
+    .github/prompts/opsx-propose.prompt.md: sha256:2465c14e9812c3f82320b9ec30f4829cc49fe576b8f5fcac487007774047e491
+    .github/prompts/opsx-sync.prompt.md: sha256:3214b48f91c8653ce5f052e512c184598647e9f7fc07b2a89e0a9702900bf6ca
+    .github/prompts/opsx-update.prompt.md: sha256:d8d3c639f79c82db6d23efdb99d7474771867e152a4a72cccc35f914e8eccbd4
+    .kiro/skills/openspec-apply-change/SKILL.md: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+    .kiro/skills/openspec-archive-change/SKILL.md: sha256:49aa064ce645212eb8675b6b11ccedfac058a3815ffb4344b01f2f27acee3c26
+    .kiro/skills/openspec-explore/SKILL.md: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+    .kiro/skills/openspec-init-repository/SKILL.md: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
+    .kiro/skills/openspec-propose-worktree/SKILL.md: sha256:ad61d661f53d9f032629c45c102d45817d778b47d1cee3fdb5efed543bea1f8c
+    .kiro/skills/openspec-propose/SKILL.md: sha256:4bbf69e35eaa12b4955143fa329da3bbb54953bd8d9e8233255c0189323e8ddb
+    .kiro/skills/openspec-sync-specs/SKILL.md: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
+    .kiro/skills/openspec-update-change/SKILL.md: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
+    .opencode/commands/opsx-apply.md: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+    .opencode/commands/opsx-archive.md: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+    .opencode/commands/opsx-explore.md: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+    .opencode/commands/opsx-init.md: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+    .opencode/commands/opsx-propose-worktree.md: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+    .opencode/commands/opsx-propose.md: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+    .opencode/commands/opsx-sync.md: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+    .opencode/commands/opsx-update.md: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
+    .windsurf/workflows/opsx-apply.md: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+    .windsurf/workflows/opsx-archive.md: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+    .windsurf/workflows/opsx-explore.md: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+    .windsurf/workflows/opsx-init.md: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+    .windsurf/workflows/opsx-propose-worktree.md: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+    .windsurf/workflows/opsx-propose.md: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+    .windsurf/workflows/opsx-sync.md: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+    .windsurf/workflows/opsx-update.md: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
+  content_hash: sha256:08323fad039b245a16a57fd4a0b1eb9c63b36c6a0a3be9c8abb80fbaed0f684a
+  declared_license: MIT
+deployments:
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-apply-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-apply-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-archive-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-archive-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:49aa064ce645212eb8675b6b11ccedfac058a3815ffb4344b01f2f27acee3c26
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-explore
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-explore/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-init-repository
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-init-repository/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-propose
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-propose-worktree
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-propose-worktree/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ad61d661f53d9f032629c45c102d45817d778b47d1cee3fdb5efed543bea1f8c
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-propose/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:4bbf69e35eaa12b4955143fa329da3bbb54953bd8d9e8233255c0189323e8ddb
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-sync-specs
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-sync-specs/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-update-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/openspec-update-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-apply.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-archive.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-explore.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-init.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-propose-worktree.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-propose.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-sync.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+- kind: project-relative
+  target: claude
+  value: .claude/commands/opsx-update.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-apply-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-apply-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-archive-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-archive-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:49aa064ce645212eb8675b6b11ccedfac058a3815ffb4344b01f2f27acee3c26
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-explore
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-explore/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-init-repository
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-init-repository/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-propose
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-propose-worktree
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-propose-worktree/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ad61d661f53d9f032629c45c102d45817d778b47d1cee3fdb5efed543bea1f8c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-propose/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:4bbf69e35eaa12b4955143fa329da3bbb54953bd8d9e8233255c0189323e8ddb
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-sync-specs
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-sync-specs/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-update-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/openspec-update-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-apply.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:83eedb3102e1ea08effd65774d799553f346e73284dd7468ac5544f62396b63e
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-archive.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:f6712118864f7a7b9d7782f51ba89670b1ac2661bf74cdaa093289e3fc11b3fc
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-explore.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:2a2290b5108e839272a0bbced7b4fa2fbc8dff9c437fc19e2033076ccb55b8e1
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-init.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:1bf2d2e4fbad57748fcf10b281f8906ddf48016def82e1c474ac5817278ba5f1
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-propose-worktree.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:7751699e052827ad60e88558fe53bf87b423e5257b18a733752f83bde1214a5c
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-propose.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:2465c14e9812c3f82320b9ec30f4829cc49fe576b8f5fcac487007774047e491
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-sync.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:3214b48f91c8653ce5f052e512c184598647e9f7fc07b2a89e0a9702900bf6ca
+- kind: project-relative
+  target: copilot
+  value: .github/prompts/opsx-update.prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:d8d3c639f79c82db6d23efdb99d7474771867e152a4a72cccc35f914e8eccbd4
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-apply.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-archive.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-explore.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-init.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-propose-worktree.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-propose.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-sync.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+- kind: project-relative
+  target: cursor
+  value: .cursor/commands/opsx-update.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-apply.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:a6528b0769fc2baaa4f2e8f5d9cd36cd3c87c78ba324c5c7694788bf5ef2b8de
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-archive.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:d6ba98bb7d089ad71baff7642ec68b03b97334b213395367825f5077aaf99675
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-explore.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:0cbb4658d31a86a0bf7b846126fbd5e67d97ea09ed583d2fe382e86ccd3b7e8c
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-init.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:22bb3b7c7852fcffe3645567df753376dc003cd51d4fe07b39a1f93118eee34a
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-propose-worktree.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:4b80a4671632f52e1ddeb0ff13ed6905c188715b76f929227b00fa3868491615
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-propose.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:109d1548ea52c512bdf42806faf811f242bdfde94bbab73e6d4c1b6aea592c59
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-sync.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:29c17c96bf87207e062cb2c148af250caf47f6a10214adaa2607f363784a09e9
+- kind: project-relative
+  target: gemini
+  value: .gemini/commands/opsx-update.toml
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:8455cbdec73a5513bf472adeb476fc6a75ed7925a8f4e01df1436d3137ad3274
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-apply-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-apply-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-archive-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-archive-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:49aa064ce645212eb8675b6b11ccedfac058a3815ffb4344b01f2f27acee3c26
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-explore
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-explore/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-init-repository
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-init-repository/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-propose
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-propose-worktree
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-propose-worktree/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ad61d661f53d9f032629c45c102d45817d778b47d1cee3fdb5efed543bea1f8c
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-propose/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:4bbf69e35eaa12b4955143fa329da3bbb54953bd8d9e8233255c0189323e8ddb
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-sync-specs
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-sync-specs/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-update-change
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/openspec-update-change/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-apply.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-archive.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-explore.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-init.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-propose-worktree.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-propose.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-sync.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+- kind: project-relative
+  target: opencode
+  value: .opencode/commands/opsx-update.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-apply.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:8ec7965257ed8ab657cc25fb8bb070cb0e848149fe8460ebf0af906fd601d105
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-archive.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:22e86da255902320dc89dd978b2ab53f10042c29ea25c1847b32b279f63ff341
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-explore.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:c06175ed014b80a8541053258e5c5cfe55e681475b2ad5162b4de880ee9ed90a
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-init.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:3548af59322f43d4042dcf719bc460e0a320d8ac18bd4bccb220517b32bef32c
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-propose-worktree.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:cd43a67f6d061f134e58b2c0a4b85be89d0e962a99bbc6bc8677044a96c05b2a
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-propose.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:80bccfd29c7f77e33f52cee9835666eac34bdaaee404bac50c58f628cd5743fa
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-sync.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
+- kind: project-relative
+  target: windsurf
+  value: .windsurf/workflows/opsx-update.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03

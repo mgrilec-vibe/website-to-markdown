@@ -16,10 +16,10 @@ button:disabled { cursor: wait; opacity: .65; }
  .markdown-result th, .markdown-result td { padding: .4rem .55rem; border: 1px solid color-mix(in srgb, CanvasText 25%, transparent); text-align: left; vertical-align: top; }
  .markdown-resource { color: color-mix(in srgb, CanvasText 65%, transparent); font-style: italic; }
 .export-popup { width: 22rem; padding: 1rem; }
+.export-result { width: min(56rem, calc(100vw - 2rem)); }
 .export-popup h1 { margin: 0; font-size: 1.1rem; }
 .export-popup button { width: 100%; margin-top: .75rem; }
 .export-popup output { display: block; margin-top: .5rem; }
-.export-preview { max-width: 96rem; margin: 0 auto; padding: 2rem; }
 h1, h2, p { margin-top: 0; }
 .eyebrow { margin-bottom: .2rem; color: #5b6cff; font-size: .8rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .muted { color: color-mix(in srgb, CanvasText 65%, transparent); }
@@ -28,8 +28,6 @@ fieldset { display: flex; flex-wrap: wrap; gap: 1rem; border: 0; padding: 0; }
 .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .notice { padding: .75rem; border-left: .25rem solid #5b6cff; background: color-mix(in srgb, #5b6cff 10%, Canvas); }
 .notice.error { border-left-color: #c72c41; background: color-mix(in srgb, #c72c41 10%, Canvas); }
-.output-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem; }
-.output-grid article { min-width: 0; }
+.final-output article { min-width: 0; }
 #detail { width: min(100%, 44rem); }
 [hidden] { display: none !important; }
-@media (max-width: 40rem) { .export-preview { padding: 1rem; } }

@@ -6,6 +6,8 @@ import type {
   ExportMode,
   LanguageState,
   MarkdownBlock,
+  SummarizationProvider,
+  SummaryOrigin,
 } from './export-domain';
 import { convertCapturedPage } from './export-markdown';
 
@@ -45,6 +47,7 @@ function frontMatter(metadata: ExportMetadata): string {
     ...(metadata.canonicalUrl ? [`canonical_url: ${escapeYaml(metadata.canonicalUrl)}`] : []),
     `captured_at: ${escapeYaml(metadata.capturedAt)}`,
     `export_mode: ${metadata.exportMode}`,
+    `requested_provider: ${metadata.requestedProvider}`,
     `compression_mode: ${metadata.compressionMode}`,
     `detail: ${metadata.detail}`,
     `words: ${metadata.words}`,
@@ -83,25 +86,30 @@ export function unknownLanguageState(declaredLanguage?: string): LanguageState {
   };
 }
 
-export function deterministicCompression(captured: CapturedPage, mode: ExportMode, detail: number, language = unknownLanguageState(captured.metadata.pageLanguage)): CompressionResult {
-  const policy = detailPolicy(detail);
-  const conversion = convertCapturedPage(captured, mode);
-  const removable = conversion.blocks.filter((block) => block.kind === 'removable');
-  const eligible = conversion.blocks.filter((block) => block.kind === 'summarizable');
-  const retained = retainedSummarizable(eligible, policy.retainRatio);
-  const visible = conversion.blocks.filter((block) => block.kind === 'provenance' || block.kind === 'protected' || (block.kind === 'summarizable' && retained.has(block.id)));
+function resultFromBlocks(
+  captured: CapturedPage,
+  mode: ExportMode,
+  limitations: readonly string[],
+  detail: number,
+  language: LanguageState,
+  requestedProvider: SummarizationProvider,
+  visible: readonly MarkdownBlock[],
+  removable: readonly MarkdownBlock[],
+  summarizableBlocks: readonly MarkdownBlock[],
+): CompressionResult {
   const body = [
-    conversion.limitations.length
-      ? conversion.limitations.map((notice) => `> Conversion limitation: ${notice}`).join('\n>\n')
+    limitations.length
+      ? limitations.map((notice) => `> Conversion limitation: ${notice}`).join('\n>\n')
       : '',
     visible.map((block) => block.markdown.trim()).filter(Boolean).join('\n\n'),
   ].filter(Boolean).join('\n\n');
   let metadata: ExportMetadata = {
     ...captured.metadata,
     exportMode: mode,
-    compressionMode: 'deterministic',
+    requestedProvider,
+    compressionMode: 'complete',
     summaryOrigin: 'none',
-    detail: policy.detail,
+    detail,
     words: 0,
     bytes: 0,
     language,
@@ -118,12 +126,47 @@ export function deterministicCompression(captured: CapturedPage, mode: ExportMod
     markdown,
     metadata,
     removedBlockIds: removable.map((block) => block.id),
-    summarizableBlocks: policy.summaryEnabled ? eligible.filter((block) => !retained.has(block.id)) : [],
+    summarizableBlocks,
     blocks: visible,
   };
 }
 
-export type SummaryOrigin = 'deterministic-extractive' | 'local-ai';
+export function completeCompression(
+  captured: CapturedPage,
+  mode: ExportMode,
+  language = unknownLanguageState(captured.metadata.pageLanguage),
+): CompressionResult {
+  const conversion = convertCapturedPage(captured, mode);
+  const removable = conversion.blocks.filter((block) => block.kind === 'removable');
+  const visible = conversion.blocks.filter((block) => block.kind !== 'removable');
+  return resultFromBlocks(captured, mode, conversion.limitations, 100, language, 'none', visible, removable, []);
+}
+
+export function deterministicCompression(
+  captured: CapturedPage,
+  mode: ExportMode,
+  detail: number,
+  language = unknownLanguageState(captured.metadata.pageLanguage),
+  requestedProvider: SummarizationProvider = 'custom',
+): CompressionResult {
+  const policy = detailPolicy(detail);
+  const conversion = convertCapturedPage(captured, mode);
+  const removable = conversion.blocks.filter((block) => block.kind === 'removable');
+  const eligible = conversion.blocks.filter((block) => block.kind === 'summarizable');
+  const retained = retainedSummarizable(eligible, policy.retainRatio);
+  const visible = conversion.blocks.filter((block) => block.kind === 'provenance' || block.kind === 'protected' || (block.kind === 'summarizable' && retained.has(block.id)));
+  return resultFromBlocks(
+    captured,
+    mode,
+    conversion.limitations,
+    policy.detail,
+    language,
+    requestedProvider,
+    visible,
+    removable,
+    policy.summaryEnabled ? eligible.filter((block) => !retained.has(block.id)) : [],
+  );
+}
 
 interface SourceSentence {
   readonly block: MarkdownBlock;
@@ -146,50 +189,92 @@ function sourceSentences(block: MarkdownBlock): readonly SourceSentence[] {
 }
 
 function sentenceTokens(sentence: string): readonly string[] {
-  return sentence.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+  return [...new Set(sentence.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [])];
+}
+
+function characterTrigrams(sentence: string): readonly string[] {
+  const normalized = sentence.toLocaleLowerCase().replace(/\s+/gu, ' ').trim();
+  if (normalized.length < 3) return [];
+  const trigrams = new Set<string>();
+  for (let index = 0; index <= normalized.length - 3; index += 1) trigrams.add(normalized.slice(index, index + 3));
+  return [...trigrams];
+}
+
+function jaccard(left: readonly string[], right: readonly string[]): number {
+  if (!left.length || !right.length) return 0;
+  const leftSet = new Set(left);
+  const rightSet = new Set(right);
+  let shared = 0;
+  for (const token of leftSet) if (rightSet.has(token)) shared += 1;
+  return shared / (leftSet.size + rightSet.size - shared);
+}
+
+export function sentenceSimilarity(left: string, right: string): number {
+  const leftTokens = sentenceTokens(left);
+  const rightTokens = sentenceTokens(right);
+  if (leftTokens.length >= 2 && rightTokens.length >= 2) return jaccard(leftTokens, rightTokens);
+  const leftTrigrams = characterTrigrams(left);
+  const rightTrigrams = characterTrigrams(right);
+  return leftTrigrams.length >= 3 && rightTrigrams.length >= 3 ? jaccard(leftTrigrams, rightTrigrams) : 0;
+}
+
+function lexicalSimilarity(left: SourceSentence, right: SourceSentence): number {
+  return sentenceSimilarity(left.sentence, right.sentence);
+}
+
+function relevanceScores(candidates: readonly SourceSentence[], frequency: ReadonlyMap<string, number>): ReadonlyMap<SourceSentence, number> {
+  const raw = candidates.map((candidate) => {
+    const tokens = sentenceTokens(candidate.sentence);
+    const frequencyScore = tokens.reduce((total, token) => total + (frequency.get(token) ?? 0), 0) / Math.max(tokens.length, 1);
+    return { candidate, score: frequencyScore + (candidate.blockSentenceIndex === 0 ? 0.25 : 0) + 1 / (1 + candidate.sourceOrder) };
+  });
+  const minimum = Math.min(...raw.map(({ score }) => score));
+  const maximum = Math.max(...raw.map(({ score }) => score));
+  return new Map(raw.map(({ candidate, score }) => [candidate, maximum === minimum ? 1 : (score - minimum) / (maximum - minimum)]));
 }
 
 export function extractiveSummaries(blocks: readonly MarkdownBlock[], detail: number): readonly { readonly block: MarkdownBlock; readonly markdown: string }[] {
   const sentences = blocks.flatMap(sourceSentences);
-  if (!sentences.length || detailPolicy(detail).extractiveSentenceRatio === 0) return [];
+  const policy = detailPolicy(detail);
+  if (!sentences.length || policy.extractiveSentenceRatio === 0) return [];
   const frequency = new Map<string, number>();
   for (const sentence of sentences) {
     for (const token of sentenceTokens(sentence.sentence)) frequency.set(token, (frequency.get(token) ?? 0) + 1);
   }
-  const selected = new Set<SourceSentence>();
+  const selectedByBlock = new Map<string, SourceSentence[]>();
   for (const block of blocks) {
     const candidates = sentences.filter((sentence) => sentence.block.id === block.id);
-    const count = Math.max(1, Math.ceil(candidates.length * detailPolicy(detail).extractiveSentenceRatio));
-    const ranked = [...candidates].sort((left, right) => {
-      const score = (candidate: SourceSentence): number => {
-        const tokens = sentenceTokens(candidate.sentence);
-        const frequencyScore = tokens.reduce((total, token) => total + (frequency.get(token) ?? 0), 0) / Math.max(tokens.length, 1);
-        const leadScore = candidate.blockSentenceIndex === 0 ? 0.25 : 0;
-        const sectionScore = 1 / (1 + candidate.sourceOrder);
-        return frequencyScore + leadScore + sectionScore;
-      };
-      return score(right) - score(left) || left.blockSentenceIndex - right.blockSentenceIndex;
-    });
-    ranked.slice(0, count).forEach((sentence) => selected.add(sentence));
-  }
-  const selectedByBlock = new Map<string, SourceSentence[]>();
-  for (const sentence of sentences) {
-    if (!selected.has(sentence)) continue;
-    const group = selectedByBlock.get(sentence.block.id) ?? [];
-    group.push(sentence);
-    selectedByBlock.set(sentence.block.id, group);
+    const selectionCount = Math.max(1, Math.ceil(candidates.length * policy.extractiveSentenceRatio));
+    const relevance = relevanceScores(candidates, frequency);
+    const selected: SourceSentence[] = [];
+    while (selected.length < selectionCount && selected.length < candidates.length) {
+      const next = candidates
+        .filter((candidate) => !selected.includes(candidate))
+        .sort((left, right) => {
+          const score = (candidate: SourceSentence): number => 0.7 * (relevance.get(candidate) ?? 0) - 0.3 * Math.max(0, ...selected.map((chosen) => lexicalSimilarity(candidate, chosen)));
+          return score(right) - score(left) || left.blockSentenceIndex - right.blockSentenceIndex;
+        })[0];
+      if (!next) break;
+      selected.push(next);
+    }
+    if (selected.length) selectedByBlock.set(block.id, selected.sort((left, right) => left.blockSentenceIndex - right.blockSentenceIndex));
   }
   return blocks.flatMap((block) => {
-    const group = selectedByBlock.get(block.id);
-    return group?.length ? [{ block, markdown: group.map((sentence) => sentence.sentence).join(' ') }] : [];
+    const selected = selectedByBlock.get(block.id);
+    return selected?.length ? [{ block, markdown: selected.map((sentence) => sentence.sentence).join(' ') }] : [];
   });
 }
 
-function summaryLabel(origin: SummaryOrigin): string {
-  return origin === 'local-ai' ? 'Locally generated summary' : 'Deterministic extractive summary';
+function summaryLabel(origin: Exclude<SummaryOrigin, 'none'>): string {
+  return origin === 'local-ai' ? 'Locally generated summary' : 'Custom extractive summary';
 }
 
-export function withSummaries(result: CompressionResult, summaries: readonly { readonly block: MarkdownBlock; readonly markdown: string }[], origin: SummaryOrigin, summaryChunkCount = 0): CompressionResult {
+export function withSummaries(
+  result: CompressionResult,
+  summaries: readonly { readonly block: MarkdownBlock; readonly markdown: string }[],
+  origin: Exclude<SummaryOrigin, 'none'>,
+  summaryChunkCount = 0,
+): CompressionResult {
   const generated = summaries.filter((summary) => summary.markdown.trim());
   const ordered = [
     ...result.blocks.filter((block) => block.kind !== 'provenance').map((block) => ({ sourceOrder: block.sourceOrder, markdown: block.markdown.trim() })),
@@ -201,7 +286,7 @@ export function withSummaries(result: CompressionResult, summaries: readonly { r
   const body = ordered.map((entry) => entry.markdown).filter(Boolean).join('\n\n');
   let metadata: ExportMetadata = {
     ...result.metadata,
-    compressionMode: origin === 'local-ai' ? 'local-ai-assisted' : 'deterministic-extractive',
+    compressionMode: origin === 'local-ai' ? 'local-ai-assisted' : 'custom-extractive',
     summaryOrigin: origin,
     generatedSummaryCount: generated.length,
     summaryChunkCount,
@@ -216,11 +301,21 @@ export function withSummaries(result: CompressionResult, summaries: readonly { r
   return { ...result, markdown, metadata };
 }
 
-export function deterministicExtractiveCompression(captured: CapturedPage, mode: ExportMode, detail: number, language = unknownLanguageState(captured.metadata.pageLanguage)): CompressionResult {
-  const result = deterministicCompression(captured, mode, detail, language);
-  return result.metadata.detail === 100 ? result : withSummaries(result, extractiveSummaries(result.summarizableBlocks, detail), 'deterministic-extractive');
+export function deterministicExtractiveCompression(
+  captured: CapturedPage,
+  mode: ExportMode,
+  detail: number,
+  language = unknownLanguageState(captured.metadata.pageLanguage),
+  requestedProvider: SummarizationProvider = 'custom',
+): CompressionResult {
+  const result = deterministicCompression(captured, mode, detail, language, requestedProvider);
+  return result.metadata.detail === 100 ? result : withSummaries(result, extractiveSummaries(result.summarizableBlocks, detail), 'deterministic-diverse-extractive');
 }
 
-export function withGeneratedSummaries(result: CompressionResult, summaries: readonly { readonly block: MarkdownBlock; readonly markdown: string }[], summaryChunkCount: number): CompressionResult {
+export function withGeneratedSummaries(
+  result: CompressionResult,
+  summaries: readonly { readonly block: MarkdownBlock; readonly markdown: string }[],
+  summaryChunkCount: number,
+): CompressionResult {
   return withSummaries(result, summaries, 'local-ai', summaryChunkCount);
 }

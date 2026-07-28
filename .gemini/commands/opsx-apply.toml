@@ -1,0 +1,2 @@
+description = "Implement tasks from an OpenSpec change."
+prompt = "Implement the OpenSpec change ${input:change}. Use the `openspec-apply-change` skill and follow its workflow. If no change is supplied, follow the skill's selection procedure."

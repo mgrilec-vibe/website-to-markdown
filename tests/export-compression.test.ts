@@ -1,10 +1,12 @@
 import { DOMParser as LinkedomDOMParser } from 'linkedom';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
+  completeCompression,
   detailPolicy,
   deterministicCompression,
   deterministicExtractiveCompression,
   extractiveSummaries,
+  sentenceSimilarity,
   unknownLanguageState,
   withGeneratedSummaries,
 } from '../src/export-compression';
@@ -169,7 +171,7 @@ describe('export markdown conversion and deterministic compression', () => {
       capturedAt: captured.metadata.capturedAt,
       pageLanguage: 'en',
       exportMode: 'focused',
-      compressionMode: 'deterministic',
+      compressionMode: 'complete',
       detail: 100,
       words: expect.any(Number),
       bytes: expect.any(Number),
@@ -181,7 +183,7 @@ describe('export markdown conversion and deterministic compression', () => {
     expect(result.markdown).toContain('source_url: "https://example.com/articles/signals"');
     expect(result.markdown).toContain('canonical_url: "https://example.com/reference/signals"');
     expect(result.markdown).toContain('export_mode: focused');
-    expect(result.markdown).toContain('compression_mode: deterministic');
+    expect(result.markdown).toContain('compression_mode: complete');
     expect(result.markdown).toContain(`words: ${result.metadata.words}`);
     expect(result.markdown).toContain(`bytes: ${result.metadata.bytes}`);
     expect(result.markdown).toContain('detected_language: "unknown"');
@@ -241,15 +243,17 @@ describe('export markdown conversion and deterministic compression', () => {
     expect(summaries.map((summary) => summary.block.id)).toEqual(['prose-1', 'prose-2']);
   });
 
-  it('labels low-detail fallback output as deterministic-extractive without including protected blocks', () => {
+  it('labels low-detail Custom output with requested-provider and actual-origin metadata without including protected blocks', () => {
     const result = deterministicExtractiveCompression(captured, 'complete', 15, declaredLanguage);
 
     expect(result.metadata).toMatchObject({
-      compressionMode: 'deterministic-extractive',
-      summaryOrigin: 'deterministic-extractive',
+      requestedProvider: 'custom',
+      compressionMode: 'custom-extractive',
+      summaryOrigin: 'deterministic-diverse-extractive',
     });
-    expect(result.markdown).toContain('summary_origin: deterministic-extractive');
-    expect(result.markdown).toContain('Deterministic extractive summary');
+    expect(result.markdown).toContain('requested_provider: custom');
+    expect(result.markdown).toContain('summary_origin: deterministic-diverse-extractive');
+    expect(result.markdown).toContain('Custom extractive summary');
     expect(result.markdown).toContain('https://example.com/guide');
     expect(result.markdown).toContain('```ts');
     expect(result.markdown).not.toContain('Cookie settings');
@@ -259,7 +263,7 @@ describe('export markdown conversion and deterministic compression', () => {
     const result = deterministicExtractiveCompression(captured, 'complete', 75, declaredLanguage);
 
     expect(result.metadata.generatedSummaryCount).toBeGreaterThan(0);
-    expect(result.markdown).toContain('Deterministic extractive summary');
+    expect(result.markdown).toContain('Custom extractive summary');
   });
 
   it('keeps Detail 100 as the source-preserved deterministic result', () => {
@@ -268,5 +272,47 @@ describe('export markdown conversion and deterministic compression', () => {
 
     expect(extractive).toEqual(baseline);
     expect(extractive.metadata).toMatchObject({ summaryOrigin: 'none', generatedSummaryCount: 0 });
+  });
+
+  it('produces the same Custom derivative on repeated runs', () => {
+    expect(deterministicExtractiveCompression(captured, 'complete', 15, declaredLanguage)).toEqual(
+      deterministicExtractiveCompression(captured, 'complete', 15, declaredLanguage),
+    );
+  });
+  it('keeps None as complete source regardless of the inactive Detail value', () => {
+    const result = completeCompression(captured, 'complete', declaredLanguage);
+
+    expect(result.metadata).toMatchObject({ requestedProvider: 'none', summaryOrigin: 'none', detail: 100, generatedSummaryCount: 0 });
+    expect(result.markdown).toContain('Signals help operators choose the next useful action');
+    expect(result.markdown).toContain('Keep the original observation available');
+    expect(result.markdown).not.toContain('Cookie settings');
+  });
+
+  it('selects an orthogonal sentence over an exact duplicate with greedy MMR', () => {
+    const block: MarkdownBlock = {
+      id: 'mmr',
+      kind: 'summarizable',
+      sourceOrder: 0,
+      markdown: [
+        'Safety evidence supports the release decision.',
+        'Safety evidence supports the release decision.',
+        'Rollback teams verify independent deployment caveat.',
+        'Rollback.',
+        'Teams.',
+        'Verify.',
+        'Independent.',
+        'Deployment.',
+        'Caveat.',
+      ].join(' '),
+    };
+
+    const summary = extractiveSummaries([block], 15)[0]!.markdown;
+    expect((summary.match(/Safety evidence supports the release decision\./g) ?? [])).toHaveLength(1);
+    expect(summary).toContain('Rollback teams verify independent deployment caveat.');
+  });
+
+  it('uses bounded character-trigram similarity when word tokens are too coarse', () => {
+    expect(sentenceSimilarity('你好世界呀', '你好世界呢')).toBeGreaterThan(0);
+    expect(sentenceSimilarity('ab', 'ac')).toBe(0);
   });
 });

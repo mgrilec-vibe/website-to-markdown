@@ -1,3 +1,4 @@
+import { captureAndStore } from '../src/capture-transport';
 import { newExportId, saveExport } from '../src/storage';
 import type { CapturedPage } from '../src/export-domain';
 
@@ -45,18 +46,15 @@ function capturePageInTab(): CapturedPage {
 }
 
 async function exportActiveTab(): Promise<{ id: string }> {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id || !tab.url?.startsWith('http')) throw new Error('This page cannot be exported. Open a regular HTTP(S) page and try again.');
-  const executions = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: capturePageInTab,
+  return captureAndStore({
+    activeTab: async () => (await chrome.tabs.query({ active: true, currentWindow: true }))[0],
+    capture: async (tabId) => (await chrome.scripting.executeScript({
+      target: { tabId },
+      func: capturePageInTab,
+    }))[0]?.result,
+    newId: newExportId,
+    save: async (id, captured) => saveExport({ id, captured }),
   });
-  const captured = executions[0]?.result;
-  if (!captured) throw new Error('Chrome did not return page content for this tab.');
-  const id = newExportId();
-  await saveExport({ id, captured });
-  await chrome.tabs.create({ url: chrome.runtime.getURL(`/preview.html?export=${encodeURIComponent(id)}`) });
-  return { id };
 }
 
 export default defineBackground(() => {

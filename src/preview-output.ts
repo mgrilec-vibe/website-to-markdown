@@ -2,25 +2,24 @@ import { renderMarkdown } from './markdown-render';
 
 export interface PreviewOutput {
   readonly element: HTMLElement;
-  readonly baselineMetrics: HTMLParagraphElement;
-  readonly derivedMetrics: HTMLParagraphElement;
-  readonly baselineView: HTMLElement;
-  readonly derivedView: HTMLElement;
+  readonly metadata: HTMLParagraphElement;
+  readonly view: HTMLElement;
 }
 
 export function createPreviewOutput(document: Document): PreviewOutput {
   const element = document.createElement('section');
-  element.className = 'output-grid';
+  element.className = 'final-output';
   element.innerHTML = `
-    <article><h2>Deterministic result</h2><p id="baseline-metrics" class="muted"></p><div id="baseline" class="markdown-result" aria-label="Deterministic Markdown result"></div></article>
-    <article><h2>Compressed derivative</h2><p id="derived-metrics" class="muted"></p><div id="derived" class="markdown-result" aria-label="Compressed Markdown derivative"></div></article>
+    <article>
+      <h2>Final Markdown</h2>
+      <p id="final-metadata" class="muted"></p>
+      <div id="final-markdown" class="markdown-result" aria-label="Final Markdown result"></div>
+    </article>
   `;
   return {
     element,
-    baselineMetrics: element.querySelector<HTMLParagraphElement>('#baseline-metrics')!,
-    derivedMetrics: element.querySelector<HTMLParagraphElement>('#derived-metrics')!,
-    baselineView: element.querySelector<HTMLElement>('#baseline')!,
-    derivedView: element.querySelector<HTMLElement>('#derived')!,
+    metadata: element.querySelector<HTMLParagraphElement>('#final-metadata')!,
+    view: element.querySelector<HTMLElement>('#final-markdown')!,
   };
 }
 

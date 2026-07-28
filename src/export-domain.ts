@@ -2,6 +2,8 @@ export const EXPORT_FORMAT_VERSION = 1 as const;
 export const SUPPORTED_SUMMARY_LANGUAGES = ['en', 'es', 'ja', 'de', 'fr'] as const;
 
 export type ExportMode = 'focused' | 'complete';
+export type SummarizationProvider = 'none' | 'browser' | 'custom';
+export type SummaryOrigin = 'none' | 'deterministic-diverse-extractive' | 'local-ai';
 export type BlockKind = 'provenance' | 'protected' | 'removable' | 'summarizable';
 export type ModelAvailability = 'available' | 'downloadable' | 'downloading' | 'unavailable' | 'cancelled' | 'failed' | 'unchecked';
 export type LanguageOrigin = 'detected' | 'declared' | 'mixed' | 'unknown';
@@ -65,8 +67,9 @@ export interface CapabilityState {
 
 export interface ExportMetadata extends CaptureMetadata {
   readonly exportMode: ExportMode;
-  readonly compressionMode: 'deterministic' | 'deterministic-extractive' | 'local-ai-assisted';
-  readonly summaryOrigin: 'none' | 'deterministic-extractive' | 'local-ai';
+  readonly requestedProvider: SummarizationProvider;
+  readonly compressionMode: 'complete' | 'custom-extractive' | 'local-ai-assisted';
+  readonly summaryOrigin: SummaryOrigin;
   readonly detail: number;
   readonly words: number;
   readonly bytes: number;

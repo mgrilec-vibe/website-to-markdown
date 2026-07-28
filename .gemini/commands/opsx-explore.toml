@@ -1,0 +1,2 @@
+description = "Explore an OpenSpec idea, problem, or change."
+prompt = "Explore ${input:request}. Use the `openspec-explore` skill and follow its workflow."
