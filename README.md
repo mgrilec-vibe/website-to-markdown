@@ -55,6 +55,16 @@ Protected blocks include provenance, headings, links, code, tables, and quotatio
 
 Do not compare AI output byte-for-byte across machines or runs. Compare output size, structural checks, generated output, and reviewer findings. In particular, compare deterministic-only and AI-assisted output at the same policy to determine whether AI adds value beyond deterministic content selection.
 
+## Browser capture setup
+
+Public-page candidate capture uses Playwright Chromium and is opt-in. Install its browser binary only when you need to capture a URL or run the explicit browser integration test:
+
+```sh
+npm run browser:install
+```
+
+Ordinary unit tests and approved-fixture evaluation use local snapshots and do not download or launch Chromium.
+
 ## Verification commands
 
 ```sh
@@ -64,3 +74,4 @@ npm run build
 ```
 
 For a real qualifying-device run, keep Chrome DevTools Network open while operating the assessment. Initial Chrome model provisioning can use the network; assessment fixture text and downloaded report content must not appear in any request.
+<!-- ci/dummy-pr-test: transient marker for workflow verification -->
