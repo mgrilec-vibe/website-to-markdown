@@ -54,6 +54,8 @@ export interface FinalExport {
   readonly browserFailure?: string;
 }
 
+export type FinalExportProgress = 'converting' | 'summarizing';
+
 function customFallback(
   captured: CapturedPage,
   conversion: MarkdownConversion,
@@ -77,7 +79,9 @@ export async function createFinalExport(
   detail: number,
   provider: SummarizationProvider,
   adapter: BrowserSummaryAdapter = browserSummaryAdapter,
+  onProgress?: (progress: FinalExportProgress) => void,
 ): Promise<FinalExport> {
+  onProgress?.('converting');
   const conversion = convertCapturedPage(captured, mode, adapter.htmlParser);
   const language = unknownLanguageState(captured.metadata.pageLanguage);
   const unchecked: CapabilityState = { detector: 'unchecked', summarizer: 'unchecked' };
@@ -119,6 +123,7 @@ export async function createFinalExport(
       return customFallback(captured, conversion, mode, detail, detectedLanguage, capability, detectedLanguage.warning ?? 'Chrome local summarization does not support this page language.');
     }
     session = await adapter.createSummarizer(detailPolicy(detail), detectedLanguage);
+    onProgress?.('summarizing');
     const summary = await adapter.summarizeBlocks(session, baseline.summarizableBlocks);
     return {
       result: withGeneratedSummaries(baseline, summary.summaries, summary.chunkCount),

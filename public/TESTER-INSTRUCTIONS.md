@@ -1,16 +1,13 @@
-# Local AI Assessment Kit: Tester Instructions
+# Website to Markdown: Tester Instructions
 
 1. In Chrome, open `chrome://extensions` and enable **Developer mode**.
 2. Choose **Load unpacked** and select this directory.
-3. Open the **Chrome Local AI Assessment Kit** extension action.
-4. Click **Check local AI**.
-5. If Chrome shows `downloadable`, click **Download and enable**. If it shows `downloading`, click **Finish download and enable** to attach a monitor to the in-progress download.
-6. Run a selected fixture/profile or **Run full suite**.
-7. Review deterministic-only and local-AI output. Generated summaries are visibly marked.
-8. Save reviewer findings and click **Download JSON report**.
+3. Open an accessible `http:` or `https:` page in the active tab.
+4. Open the **Website to Markdown** extension action. It captures and converts the active tab using the saved preferences.
+5. Review the single rendered Markdown result. It shows the requested provider, actual result origin, Detail level when active, measured output size, source URL, and capture time.
+6. Choose **Copy Markdown** or **Download .md**. The copied or downloaded bytes must match the displayed result.
+7. Open **Settings** from the result screen or the extension action menu to choose focused or complete export, **None**, **Browser local AI**, or **Custom extractive** summarization, Detail, and automatic copying.
 
-Open **Detailed provisioning log** while the model downloads. It records unique event IDs, elapsed times, monitor setup, raw progress values, create parameters, and the final resolution or error; those diagnostics are included in the report.
+Browser local AI runs only when **Browser local AI** is selected and an export is started. Chrome may need supported hardware, storage, or a local model download. If it is unavailable or fails, the extension completes the export with deterministic custom extraction and identifies that fallback in the result.
 
-The assessment uses bundled synthetic fixtures only. It has no user-page capture, account, API-key, or report-upload feature. The JSON report includes generated outputs for the bundled fixtures so reviewers can inspect omissions and quality directly.
-
-`unavailable` is a valid result: deterministic-only checks should still run. For local-AI results, use a qualifying Chrome desktop profile and follow Chrome's on-device model requirements.
+The extension processes page content locally. It does not use accounts, API keys, remote configuration, telemetry, or content-bearing network requests. Canvas-only content, inaccessible pages, and cross-origin or protected frames may be incomplete; conversion notices appear in the output when detected.

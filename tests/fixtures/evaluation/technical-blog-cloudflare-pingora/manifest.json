@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "technical-blog-cloudflare-pingora",
+  "category": "technical-blog",
+  "tags": [
+    "technical-blog",
+    "v1"
+  ],
+  "publisherDomain": "blog.cloudflare.com",
+  "markupPlatform": "cloudflare-blog",
+  "expectedFocus": "article",
+  "provenance": {
+    "originUrl": "https://blog.cloudflare.com/how-we-built-pingora-the-proxy-that-connects-cloudflare-to-the-internet/",
+    "finalUrl": "https://blog.cloudflare.com/how-we-built-pingora-the-proxy-that-connects-cloudflare-to-the-internet/",
+    "capturedAt": "2026-07-29T21:45:51.607Z",
+    "documentSha256": "eaf4e4e61f07b54e4980f5188eedbbb03404a7779c9e1c0a159cda45ee1c8405",
+    "screenshotSha256": "6f5231128263d1ca45e014e7f06f4a2f00772f65f94031435e17c49a776bc1a8",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "How we built Pingora, the proxy that connects Cloudflare to the Internet",
+    "readabilityTitle": "How we built Pingora, the proxy that connects Cloudflare to the Internet",
+    "selectedHeading": "How we built Pingora, the proxy that connects Cloudflare to the Internet"
+  },
+  "limitations": [
+    "Image omitted because its source URL is unsupported: unlabelled image.",
+    "Image omitted because its source URL is unsupported: Cloudflare."
+  ],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:45:53.039Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

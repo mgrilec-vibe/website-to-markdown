@@ -1,66 +1,65 @@
-# Chrome Local AI Assessment Kit
+# Website to Markdown
 
-A self-contained, unpacked Chrome extension for assessing Chrome's local Summarizer API against deterministic Markdown compression. It processes only bundled synthetic fixtures and makes no request containing fixture or report content.
+A local-first Chrome extension that converts the active tab into reviewable Markdown. It captures, converts, summarizes, previews, copies, and downloads content on-device; it does not send page content to a server.
 
-## Prerequisites
+## Features
 
-- Chrome 138 or later on a supported desktop platform.
-- For local AI runs, a Chrome profile that satisfies Chrome's current on-device-model hardware, storage, and initial-download requirements. An unavailable model is a valid assessment result.
-- Node.js 24+ and npm only when building the package from source.
+- Capture the active `http:` or `https:` page with source title, URL, and capture time.
+- Export either focused article content or the complete page.
+- Choose **None**, **Custom extractive**, or **Browser local AI** summarization. Browser local AI falls back to the deterministic custom extractor when unavailable.
+- Set a Detail level from 0–100 for summarized exports. Detail 100 preserves eligible prose without generating a summary.
+- Review one sanitized Markdown preview, then copy or download the exact Markdown result.
+- Save export mode, summarization provider, Detail level, and automatic-copy preference in extension settings.
 
-## Build the unpacked extension
+Protected Markdown structures—source provenance, headings, link destinations, code, tables, quotations, and conversion notices—remain verbatim in summarized exports. Canvas content, protected or cross-origin frames, and inaccessible browser pages may not be represented completely.
+
+## Install an unpacked build
+
+Requirements: Chrome and Node.js 24+ with npm.
 
 ```sh
-npm install
+npm ci
 npm run build
 ```
 
-Load `.output/chrome-mv3` through `chrome://extensions`:
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose `.output/chrome-mv3`.
+5. Open **Website to Markdown** from the Chrome toolbar.
 
-1. Enable **Developer mode**.
-2. Choose **Load unpacked**.
-3. Select the `.output/chrome-mv3` directory.
-4. Open the **Chrome Local AI Assessment Kit** extension action.
+The extension converts the current tab immediately using the saved settings. Use the extension action's **Settings** menu to choose focused or complete mode, a summarization provider, Detail, and automatic copy behavior.
 
-## Run the assessment
+## Local AI behavior
 
-1. Click **Check local AI**.
-2. If Chrome reports `downloadable`, click **Download and enable**. If it reports `downloading`, click **Finish download and enable** to attach the session monitor. Both are explicit user actions because Chrome may download the local model.
-3. Run one fixture/profile pair with **Run selected**, or run every bundled fixture and profile with **Run full suite**.
-4. Inspect deterministic-only and local-AI output. Generated summaries are marked with a Markdown comment boundary.
-5. Complete the reviewer fields for any result you want to evaluate.
-6. Click **Download JSON report**.
+Browser summarization uses Chrome's built-in local Summarizer API only after you select it and start an export. Chrome may require supported hardware, sufficient storage, or an explicit model download. If Chrome cannot provide a local summary, Website to Markdown completes the export with its deterministic custom extractor and labels the actual result origin.
 
-The report includes local capability/provisioning diagnostics, policies, measurements, structural checks, generated outputs, final fixture outputs, errors, and reviewer decisions. It contains only bundled synthetic fixture content; the extension has no user-page capture feature.
+The extension has no host permissions and does not use accounts, API keys, remote configuration, telemetry, or content-bearing network requests.
 
-While provisioning, open **Detailed provisioning log**. It records ordered event IDs, elapsed time, monitor attachment/listener registration, each raw and normalized download-progress value, session-create parameters, and session resolution or rejection. The same evidence is included in the downloaded report.
-
-## Compression policies
-
-| Policy | Deterministic behavior | Local AI behavior |
-| --- | --- | --- |
-| Full source | Removes only designated chrome | None |
-| Compact | Preserves protected source structure | Medium key-point summary of eligible prose |
-| Brief | Preserves protected source structure | Short TL;DR of eligible prose |
-| Outline | Preserves protected source structure | Short headline-style summary of eligible prose |
-
-Protected blocks include provenance, headings, links, code, tables, and quotations. Only fixture blocks explicitly classified as summarizable prose reach Chrome's local model.
-
-## Interpreting results
-
-- `unavailable` means Chrome cannot currently supply the local API for that profile or device; deterministic-only checks should still complete.
-- `downloadable` means the tester must explicitly initiate model provisioning.
-- `downloading` means provisioning is still in progress.
-- `available` allows paired deterministic and local-AI runs.
-
-Do not compare AI output byte-for-byte across machines or runs. Compare output size, structural checks, generated output, and reviewer findings. In particular, compare deterministic-only and AI-assisted output at the same policy to determine whether AI adds value beyond deterministic content selection.
-
-## Verification commands
+## Development
 
 ```sh
-npm run typecheck
 npm test
+npm run typecheck
 npm run build
+npm run zip
 ```
 
-For a real qualifying-device run, keep Chrome DevTools Network open while operating the assessment. Initial Chrome model provisioning can use the network; assessment fixture text and downloaded report content must not appear in any request.
+`npm run zip` writes the Chrome release archive to `.output/website-to-markdown-<version>-chrome.zip`.
+
+## Conversion evaluation
+
+The local evaluation harness writes inspectable Markdown and machine-readable evidence under `.output/website-evaluation/`.
+
+```sh
+# Evaluate the default approved fixture
+npm run evaluate:website
+
+# Capture and evaluate a public candidate page
+npm run evaluate:website -- https://example.com/
+
+# Evaluate an approved fixture by ID, category, or tag
+npm run evaluate:website -- --fixture fixture-id
+npm run evaluate:website -- --category documentation
+npm run evaluate:website -- --tag tables
+```

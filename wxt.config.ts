@@ -4,8 +4,8 @@ export default defineConfig({
   manifest: {
     name: 'Website to Markdown',
     description: 'Export the active page as local, reviewable Markdown.',
-    version: '0.2.0',
-    permissions: ['activeTab', 'scripting', 'storage', 'downloads'],
+    version: '0.3.0',
+    permissions: ['activeTab', 'scripting', 'storage', 'downloads', 'contextMenus'],
     host_permissions: [],
   },
 });

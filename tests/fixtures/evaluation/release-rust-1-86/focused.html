@@ -1,0 +1,130 @@
+<div id="readability-page-1" class="page"><div>
+      <p>The Rust team is happy to announce a new version of Rust, 1.86.0. Rust is a programming language empowering everyone to build reliable and efficient software.</p>
+<p>If you have a previous version of Rust installed via <code>rustup</code>, you can get 1.86.0 with:</p>
+<pre><code data-lang="plain"><span><span>$ rustup update stable</span></span></code></pre>
+<p>If you don't have it already, you can <a rel="external" href="https://www.rust-lang.org/install.html">get <code>rustup</code></a> from the appropriate page on our website, and check out the <a rel="external" href="https://doc.rust-lang.org/stable/releases.html#version-1860-2025-04-03">detailed release notes for 1.86.0</a>.</p>
+<p>If you'd like to help us out by testing future releases, you might consider updating locally to use the beta channel (<code>rustup default beta</code>) or the nightly channel (<code>rustup default nightly</code>). Please <a rel="external" href="https://github.com/rust-lang/rust/issues/new/choose">report</a> any bugs you might come across!</p>
+<h2 id="what-s-in-1-86-0-stable">
+What's in 1.86.0 stable</h2>
+<h3 id="trait-upcasting">
+Trait upcasting</h3>
+<p>This release includes a long awaited feature — the ability to upcast trait objects.
+If a trait has a <a rel="external" href="https://doc.rust-lang.org/reference/items/traits.html#supertraits">supertrait</a> you can coerce a reference to said trait object to a reference to a trait object of the supertrait:</p>
+<pre><code data-lang="rust"><span><span>trait</span><span> Trait</span><span>:</span><span> Supertrait</span><span> {</span><span>}</span></span>
+<span><span>trait</span><span> Supertrait</span><span> {</span><span>}</span></span>
+<span></span>
+<span><span>fn</span><span> upcast</span><span>(</span><span>x</span><span>:</span><span> &amp;</span><span>dyn</span><span> Trait</span><span>)</span><span> -&gt;</span><span> &amp;</span><span>dyn</span><span> Supertrait</span><span> {</span></span>
+<span><span>    x</span></span>
+<span><span>}</span></span></code></pre>
+<p>The same would work with any other kind of (smart-)pointer, like <code>Arc&lt;dyn Trait&gt; -&gt; Arc&lt;dyn Supertrait&gt;</code> or <code>*const dyn Trait -&gt; *const dyn Supertrait</code>.</p>
+<p>Previously this would have required a workaround in the form of an <code>upcast</code> method in the <code>Trait</code> itself, for example <code>fn as_supertrait(&amp;self) -&gt; &amp;dyn Supertrait</code>, and this would work only for one kind of reference/pointer. Such workarounds are not necessary anymore.</p>
+<p>Note that this means that raw pointers to trait objects carry a non-trivial invariant: "leaking" a raw pointer to a trait object with an invalid vtable into safe code may lead to undefined behavior. It is not decided yet whether creating such a raw pointer temporarily in well-controlled circumstances causes immediate undefined behavior, so code should refrain from creating such pointers under any conditions (and Miri enforces that).</p>
+<p>Trait upcasting may be especially useful with the <code>Any</code> trait, as it allows upcasting your trait object to <code>dyn Any</code> to call <code>Any</code>'s downcast methods, without adding any trait methods or using external crates.</p>
+<pre><code data-lang="rust"><span><span>use</span><span> std</span><span>::</span><span>any</span><span>::</span><span>Any</span><span>;</span></span>
+<span></span>
+<span><span>trait</span><span> MyAny</span><span>:</span><span> Any</span><span> {</span><span>}</span></span>
+<span></span>
+<span><span>impl</span><span> dyn</span><span> MyAny</span><span> {</span></span>
+<span><span>    fn</span><span> downcast_ref</span><span>&lt;</span><span>T</span><span>&gt;</span><span>(</span><span>&amp;</span><span>self</span><span>)</span><span> -&gt;</span><span> Option</span><span>&lt;</span><span>&amp;</span><span>T</span><span>&gt;</span><span> {</span></span>
+<span><span>        (</span><span>self</span><span> as</span><span> &amp;</span><span>dyn</span><span> Any</span><span>)</span><span>.</span><span>downcast_ref</span><span>(</span><span>)</span></span>
+<span><span>    }</span></span>
+<span><span>}</span></span></code></pre>
+<p>You can <a rel="external" href="https://doc.rust-lang.org/reference/type-coercions.html#unsized-coercions">learn more about trait upcasting in the Rust reference</a>.</p>
+<h3 id="hashmaps-and-slices-now-support-indexing-multiple-elements-mutably">
+<code>HashMap</code>s and slices now support indexing multiple elements mutably</h3>
+<p>The borrow checker prevents simultaneous usage of references obtained from repeated calls to <code>get_mut</code> methods. To safely support this pattern the standard library now provides a <code>get_disjoint_mut</code> helper on slices and <code>HashMap</code> to retrieve mutable references to multiple elements simultaneously. See the following example taken from the API docs of <a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.slice.html#method.get_disjoint_mut"><code>slice::get_disjoint_mut</code></a>:</p>
+<pre><code data-lang="rust"><span><span>let</span><span> v</span><span> =</span><span> &amp;</span><span>mut</span><span> [</span><span>1</span><span>,</span><span> 2</span><span>,</span><span> 3</span><span>]</span><span>;</span></span>
+<span><span>if</span><span> let</span><span> Ok</span><span>(</span><span>[</span><span>a</span><span>,</span><span> b</span><span>]</span><span>)</span><span> =</span><span> v</span><span>.</span><span>get_disjoint_mut</span><span>(</span><span>[</span><span>0</span><span>,</span><span> 2</span><span>]</span><span>)</span><span> {</span></span>
+<span><span>    *</span><span>a</span><span> =</span><span> 413</span><span>;</span></span>
+<span><span>    *</span><span>b</span><span> =</span><span> 612</span><span>;</span></span>
+<span><span>}</span></span>
+<span><span>assert_eq!</span><span>(</span><span>v</span><span>,</span><span> &amp;</span><span>[</span><span>413</span><span>,</span><span> 2</span><span>,</span><span> 612</span><span>]</span><span>)</span><span>;</span></span>
+<span></span>
+<span><span>if</span><span> let</span><span> Ok</span><span>(</span><span>[</span><span>a</span><span>,</span><span> b</span><span>]</span><span>)</span><span> =</span><span> v</span><span>.</span><span>get_disjoint_mut</span><span>(</span><span>[</span><span>0</span><span>..</span><span>1</span><span>,</span><span> 1</span><span>..</span><span>3</span><span>]</span><span>)</span><span> {</span></span>
+<span><span>    a</span><span>[</span><span>0</span><span>]</span><span> =</span><span> 8</span><span>;</span></span>
+<span><span>    b</span><span>[</span><span>0</span><span>]</span><span> =</span><span> 88</span><span>;</span></span>
+<span><span>    b</span><span>[</span><span>1</span><span>]</span><span> =</span><span> 888</span><span>;</span></span>
+<span><span>}</span></span>
+<span><span>assert_eq!</span><span>(</span><span>v</span><span>,</span><span> &amp;</span><span>[</span><span>8</span><span>,</span><span> 88</span><span>,</span><span> 888</span><span>]</span><span>)</span><span>;</span></span>
+<span></span>
+<span><span>if</span><span> let</span><span> Ok</span><span>(</span><span>[</span><span>a</span><span>,</span><span> b</span><span>]</span><span>)</span><span> =</span><span> v</span><span>.</span><span>get_disjoint_mut</span><span>(</span><span>[</span><span>1</span><span>..=</span><span>2</span><span>,</span><span> 0</span><span>..=</span><span>0</span><span>]</span><span>)</span><span> {</span></span>
+<span><span>    a</span><span>[</span><span>0</span><span>]</span><span> =</span><span> 11</span><span>;</span></span>
+<span><span>    a</span><span>[</span><span>1</span><span>]</span><span> =</span><span> 111</span><span>;</span></span>
+<span><span>    b</span><span>[</span><span>0</span><span>]</span><span> =</span><span> 1</span><span>;</span></span>
+<span><span>}</span></span>
+<span><span>assert_eq!</span><span>(</span><span>v</span><span>,</span><span> &amp;</span><span>[</span><span>1</span><span>,</span><span> 11</span><span>,</span><span> 111</span><span>]</span><span>)</span><span>;</span></span></code></pre><h3 id="allow-safe-functions-to-be-marked-with-the-target-feature-attribute">
+Allow safe functions to be marked with the <code>#[target_feature]</code> attribute.</h3>
+<p>Previously only <code>unsafe</code> functions could be marked with the <code>#[target_feature]</code> attribute as it is unsound to call such functions without the target feature being enabled. This release stabilizes the <code>target_feature_11</code> feature, allowing <em>safe</em> functions to be marked with the <code>#[target_feature]</code> attribute.</p>
+<p>Safe functions marked with the target feature attribute can only be safely called from other functions marked with the target feature attribute. However, they cannot be passed to functions accepting generics bounded by the <code>Fn*</code> traits and only support being coerced to function pointers inside of functions marked with the <code>target_feature</code> attribute.</p>
+<p>Inside of functions not marked with the target feature attribute they can be called inside of an <code>unsafe</code> block, however it is the caller's responsibility to ensure that the target feature is available.</p>
+<pre><code data-lang="rust"><span><span>#</span><span>[</span><span>target_feature</span><span>(</span><span>enable </span><span>=</span><span> "</span><span>avx2</span><span>"</span><span>)</span><span>]</span></span>
+<span><span>fn</span><span> requires_avx2</span><span>(</span><span>)</span><span> {</span></span>
+<span><span>    //</span><span> ... snip</span></span>
+<span><span>}</span></span>
+<span></span>
+<span><span>#</span><span>[</span><span>target_feature</span><span>(</span><span>enable </span><span>=</span><span> "</span><span>avx2</span><span>"</span><span>)</span><span>]</span></span>
+<span><span>fn</span><span> safe_callsite</span><span>(</span><span>)</span><span> {</span></span>
+<span><span>    //</span><span> Calling `requires_avx2` here is safe as `safe_callsite`</span></span>
+<span><span>    //</span><span> requires the `avx2` feature itself.</span></span>
+<span><span>    requires_avx2</span><span>(</span><span>)</span><span>;</span></span>
+<span><span>}</span></span>
+<span></span>
+<span><span>fn</span><span> unsafe_callsite</span><span>(</span><span>)</span><span> {</span></span>
+<span><span>    //</span><span> Calling `requires_avx2` here is unsafe, as we must</span></span>
+<span><span>    //</span><span> ensure that the `avx2` feature is available first.</span></span>
+<span><span>    if</span><span> is_x86_feature_detected!</span><span>(</span><span>"</span><span>avx2</span><span>"</span><span>)</span><span> {</span></span>
+<span><span>        unsafe</span><span> {</span><span> requires_avx2</span><span>(</span><span>)</span><span> }</span><span>;</span></span>
+<span><span>    }</span></span>
+<span><span>}</span></span></code></pre>
+<p>You can check the <a rel="external" href="https://github.com/rust-lang/rfcs/blob/master/text/2396-target-feature-1.1.md"><code>target_features_11</code></a> RFC for more information.</p>
+<h3 id="debug-assertions-that-pointers-are-non-null-when-required-for-soundness">
+Debug assertions that pointers are non-null when required for soundness</h3>
+<p>The compiler will now insert debug assertions that a pointer is not null upon non-zero-sized reads and writes, and also when the pointer is reborrowed into a reference. For example, the following code will now produce a non-unwinding panic when debug assertions are enabled:</p>
+<pre><code data-lang="rust"><span><span>let</span><span> _x</span><span> =</span><span> *</span><span>std</span><span>::</span><span>ptr</span><span>::</span><span>null</span><span>::</span><span>&lt;</span><span>u8</span><span>&gt;</span><span>(</span><span>)</span><span>;</span></span>
+<span><span>let</span><span> _x</span><span> =</span><span> &amp;</span><span>*</span><span>std</span><span>::</span><span>ptr</span><span>::</span><span>null</span><span>::</span><span>&lt;</span><span>u8</span><span>&gt;</span><span>(</span><span>)</span><span>;</span></span></code></pre>
+<p>Trivial examples like this have produced a warning since Rust 1.53.0, the new runtime check will detect these scenarios regardless of complexity.</p>
+<p>These assertions only take place when debug assertions are enabled which means that they <strong>must not</strong> be relied upon for soundness. This also means that dependencies which have been compiled with debug assertions disabled (e.g. the standard library) will not trigger the assertions even when called by code with debug assertions enabled.</p>
+<h3 id="make-missing-abi-lint-warn-by-default">
+Make <code>missing_abi</code> lint warn by default</h3>
+<p>Omitting the ABI in extern blocks and functions (e.g. <code>extern {}</code> and <code>extern fn</code>) will now result in a warning (via the <code>missing_abi</code> lint). Omitting the ABI after the <code>extern</code> keyword has always implicitly resulted in the <code>"C"</code> ABI. It is now recommended to explicitly specify the <code>"C"</code> ABI (e.g. <code>extern "C" {}</code> and <code>extern "C" fn</code>).</p>
+<p>You can check the <a rel="external" href="https://rust-lang.github.io/rfcs/3722-explicit-extern-abis.html">Explicit Extern ABIs RFC</a> for more information.</p>
+<h3 id="target-deprecation-warning-for-1-87-0">
+Target deprecation warning for 1.87.0</h3>
+<p>The tier-2 target <code>i586-pc-windows-msvc</code> will be removed in the next version of Rust, 1.87.0. Its difference to the much more popular <code>i686-pc-windows-msvc</code> is that it does not require SSE2 instruction support, but Windows 10, the minimum required OS version of all <code>windows</code> targets (except the <code>win7</code> targets), requires SSE2 instructions itself.</p>
+<p>All users currently targeting <code>i586-pc-windows-msvc</code> should migrate to <code>i686-pc-windows-msvc</code> before the <code>1.87.0</code> release.</p>
+<p>You can check the <a rel="external" href="https://github.com/rust-lang/compiler-team/issues/840">Major Change Proposal</a> for more information.</p>
+<h3 id="stabilized-apis">
+Stabilized APIs</h3>
+<ul>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.f64.html#method.next_down"><code>{float}::next_down</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.f64.html#method.next_up"><code>{float}::next_up</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.slice.html#method.get_disjoint_mut"><code>&lt;[_]&gt;::get_disjoint_mut</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.slice.html#method.get_disjoint_unchecked_mut"><code>&lt;[_]&gt;::get_disjoint_unchecked_mut</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/slice/enum.GetDisjointMutError.html"><code>slice::GetDisjointMutError</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/std/collections/hash_map/struct.HashMap.html#method.get_disjoint_mut"><code>HashMap::get_disjoint_mut</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/std/collections/hash_map/struct.HashMap.html#method.get_disjoint_unchecked_mut"><code>HashMap::get_disjoint_unchecked_mut</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/num/struct.NonZero.html#method.count_ones"><code>NonZero::count_ones</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.pop_if"><code>Vec::pop_if</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/sync/struct.Once.html#method.wait"><code>sync::Once::wait</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/sync/struct.Once.html#method.wait_force"><code>sync::Once::wait_force</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/sync/struct.OnceLock.html#method.wait"><code>sync::OnceLock::wait</code></a></li>
+</ul>
+<p>These APIs are now stable in const contexts:</p>
+<ul>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/hint/fn.black_box.html"><code>hint::black_box</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/io/struct.Cursor.html#method.get_mut"><code>io::Cursor::get_mut</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/io/struct.Cursor.html#method.set_position"><code>io::Cursor::set_position</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.str.html#method.is_char_boundary"><code>str::is_char_boundary</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.str.html#method.split_at"><code>str::split_at</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.str.html#method.split_at_checked"><code>str::split_at_checked</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.str.html#method.split_at_mut"><code>str::split_at_mut</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.str.html#method.split_at_mut_checked"><code>str::split_at_mut_checked</code></a></li>
+</ul>
+<h3 id="other-changes">
+Other changes</h3>
+<p>Check out everything that changed in <a rel="external" href="https://github.com/rust-lang/rust/releases/tag/1.86.0">Rust</a>, <a rel="external" href="https://doc.rust-lang.org/nightly/cargo/CHANGELOG.html#cargo-186-2025-04-03">Cargo</a>, and <a rel="external" href="https://github.com/rust-lang/rust-clippy/blob/master/CHANGELOG.md#rust-186">Clippy</a>.</p>
+<h2 id="contributors-to-1-86-0">
+Contributors to 1.86.0</h2>
+<p>Many people came together to create Rust 1.86.0. We couldn't have done it without all of you. <a rel="external" href="https://thanks.rust-lang.org/rust/1.86.0/">Thanks!</a></p>
+
+    </div></div>

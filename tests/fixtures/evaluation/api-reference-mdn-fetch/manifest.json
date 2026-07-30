@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "api-reference-mdn-fetch",
+  "category": "api-reference",
+  "tags": [
+    "api-reference",
+    "v1"
+  ],
+  "publisherDomain": "developer.mozilla.org",
+  "markupPlatform": "mdn-yari",
+  "expectedFocus": "article",
+  "provenance": {
+    "originUrl": "https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch",
+    "finalUrl": "https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch",
+    "capturedAt": "2026-07-29T21:23:11.508Z",
+    "documentSha256": "5f790edbbdf9c48bef127806c87ce84ada4a6642de00a02761e70d60f571796e",
+    "screenshotSha256": "3fe4e79bf726191bfbe2bb517cfeebfd99458589539ab170ea14ba26a11b4f0b",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "Window: fetch() method - Web APIs | MDN",
+    "readabilityTitle": "Window: fetch() method - Web APIs | MDN",
+    "selectedHeading": "Window: fetch() method - Web APIs | MDN"
+  },
+  "limitations": [],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:23:12.289Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

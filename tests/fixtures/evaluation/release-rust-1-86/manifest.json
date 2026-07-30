@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "release-rust-1-86",
+  "category": "release-notes",
+  "tags": [
+    "release-notes",
+    "v1"
+  ],
+  "publisherDomain": "blog.rust-lang.org",
+  "markupPlatform": "rust-hugo",
+  "expectedFocus": "article",
+  "provenance": {
+    "originUrl": "https://blog.rust-lang.org/2025/04/03/Rust-1.86.0.html",
+    "finalUrl": "https://blog.rust-lang.org/2025/04/03/Rust-1.86.0/",
+    "capturedAt": "2026-07-29T21:52:39.641Z",
+    "documentSha256": "03291dcc7051dbe13dfc25b248598340a41e9dc11f577f07449d6dd93449a5cf",
+    "screenshotSha256": "5f0914c492041be57df1c6900d81f976d20b1c821090b585a8f499b4363bff8a",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "screenshotMode": "viewport",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "Announcing Rust 1.86.0 | Rust Blog",
+    "readabilityTitle": "Announcing Rust 1.86.0 | Rust Blog",
+    "selectedHeading": "Announcing Rust 1.86.0 | Rust Blog"
+  },
+  "limitations": [],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:52:39.987Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

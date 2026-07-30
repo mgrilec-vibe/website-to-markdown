@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "question-answer-docker-compose-version",
+  "category": "question-answer",
+  "tags": [
+    "question-answer",
+    "v1"
+  ],
+  "publisherDomain": "github.com",
+  "markupPlatform": "github-issue",
+  "expectedFocus": "thread",
+  "provenance": {
+    "originUrl": "https://github.com/docker/compose/issues/11628",
+    "finalUrl": "https://github.com/docker/compose/issues/11628",
+    "capturedAt": "2026-07-29T21:52:11.066Z",
+    "documentSha256": "3ea3c2a0ceebb2bfdcc2d77e34ad3b0dae8f86d4e1298a21d0ef07d645be116e",
+    "screenshotSha256": "0b18102ea2a37f3f3c2fc222e0ed6f65858f7bf01c3a46d1fe92d15f494452a0",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "screenshotMode": "viewport",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "[BUG] `'version' is obsolete` · Issue #11628 · docker/compose",
+    "readabilityTitle": "[BUG] `'version' is obsolete` · Issue #11628 · docker/compose",
+    "selectedHeading": "[BUG] `'version' is obsolete` · Issue #11628 · docker/compose"
+  },
+  "limitations": [],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:52:11.961Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

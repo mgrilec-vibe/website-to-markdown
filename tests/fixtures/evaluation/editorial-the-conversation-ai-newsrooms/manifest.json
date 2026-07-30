@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "editorial-the-conversation-ai-newsrooms",
+  "category": "editorial-article",
+  "tags": [
+    "editorial-article",
+    "v1"
+  ],
+  "publisherDomain": "theconversation.com",
+  "markupPlatform": "the-conversation",
+  "expectedFocus": "article",
+  "provenance": {
+    "originUrl": "https://theconversation.com/as-ai-reshapes-newsrooms-leading-media-outlets-are-charting-different-paths-for-its-use-283565",
+    "finalUrl": "https://theconversation.com/as-ai-reshapes-newsrooms-leading-media-outlets-are-charting-different-paths-for-its-use-283565",
+    "capturedAt": "2026-07-29T21:46:02.670Z",
+    "documentSha256": "eaa9dc0b688dd9d9d48aff738d6d7d1496b7e7c22aa56010797d124da9fd1303",
+    "screenshotSha256": "72db66b0bff4d60891b621bf86a7e02121a3af9efa2fee0a80a0673e9554fd32",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "As AI reshapes newsrooms, leading media outlets are charting different paths for its use",
+    "readabilityTitle": "As AI reshapes newsrooms, leading media outlets are charting different paths for its use",
+    "selectedHeading": "As AI reshapes newsrooms, leading media outlets are charting different paths for its use"
+  },
+  "limitations": [
+    "Cross-origin and protected frame content may be unavailable."
+  ],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:46:02.953Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

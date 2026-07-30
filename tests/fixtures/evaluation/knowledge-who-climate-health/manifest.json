@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "knowledge-who-climate-health",
+  "category": "knowledge-reference",
+  "tags": [
+    "knowledge-reference",
+    "v1"
+  ],
+  "publisherDomain": "www.who.int",
+  "markupPlatform": "who-fact-sheet",
+  "expectedFocus": "article",
+  "provenance": {
+    "originUrl": "https://www.who.int/news-room/fact-sheets/detail/climate-change-and-health",
+    "finalUrl": "https://www.who.int/news-room/fact-sheets/detail/climate-change-and-health",
+    "capturedAt": "2026-07-29T21:50:39.695Z",
+    "documentSha256": "2a98ef41658851aecfa3927ba26d23a099d94a1fc10f2cd58dd4e79542f1ffce",
+    "screenshotSha256": "0d05e79da4078e2714d88275bf4bf23dcea1cf5ce642fc0515ad38ed02e45b66",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "screenshotMode": "viewport",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "Climate change",
+    "readabilityTitle": "Climate change",
+    "selectedHeading": "Climate change"
+  },
+  "limitations": [
+    "Cross-origin and protected frame content may be unavailable."
+  ],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:50:40.730Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

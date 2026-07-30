@@ -1,8 +1,16 @@
 import { parseHTML } from 'linkedom';
 import { describe, expect, it, vi } from 'vitest';
-import { mountExportPopup } from '../src/popup-app';
+import { mountExportPopup, type PopupDependencies } from '../src/popup-app';
+import type { ExportPreferences } from '../src/export-preferences';
 import type { CapturedPage } from '../src/export-domain';
 import type { FinalExport } from '../src/export-workflow';
+
+const preferences: ExportPreferences = {
+  mode: 'focused',
+  provider: 'browser',
+  detail: 75,
+  autoCopy: true,
+};
 
 const captured: CapturedPage = {
   metadata: {
@@ -20,7 +28,7 @@ const browserFallback: FinalExport = {
     markdown,
     metadata: {
       ...captured.metadata,
-      exportMode: 'complete',
+      exportMode: 'focused',
       requestedProvider: 'browser',
       compressionMode: 'custom-extractive',
       summaryOrigin: 'deterministic-diverse-extractive',
@@ -41,43 +49,96 @@ const browserFallback: FinalExport = {
   browserFailure: 'Chrome Summarizer is unavailable.',
 };
 
-describe('popup result workflow', () => {
-  it('transitions an explicit Browser request to one final fallback result and exports its exact Markdown', async () => {
-    const { document, window } = parseHTML('<!doctype html><main id="app"></main>');
+function popup(root: HTMLElement, overrides: Partial<PopupDependencies> = {}, options = preferences): PopupDependencies {
+  const dependencies: PopupDependencies = {
+    captureActiveTab: async () => ({ id: 'export-1' }),
+    loadExport: async () => ({ id: 'export-1', captured }),
+    deriveReadabilityFocus: (value) => value,
+    createFinalExport: async () => browserFallback,
+    copyFinalMarkdown: async () => undefined,
+    downloadFinalMarkdown: async () => undefined,
+    openSettings: async () => undefined,
+    ...overrides,
+  };
+  mountExportPopup(root, options, dependencies);
+  return dependencies;
+}
+
+describe('quick export popup workflow', () => {
+  it('progresses through local summarization, copies the fallback Markdown, and presents result metrics', async () => {
+    const { document } = parseHTML('<!doctype html><main id="app"></main>');
     const root = document.querySelector<HTMLElement>('#app')!;
-    const createFinalExport = vi.fn(async () => browserFallback);
-    const copyFinalMarkdown = vi.fn(async () => undefined);
-    const downloadFinalMarkdown = vi.fn(async () => undefined);
-    mountExportPopup(root, {
-      captureActiveTab: async () => ({ id: 'export-1' }),
-      loadExport: async () => ({ id: 'export-1', captured }),
-      deriveReadabilityFocus: (value) => value,
-      createFinalExport,
-      copyFinalMarkdown,
-      downloadFinalMarkdown,
+    let resolveExport: (result: FinalExport) => void = () => undefined;
+    let reportProgress: (progress: 'converting' | 'summarizing') => void = () => undefined;
+    const createFinalExport = vi.fn((
+      _captured: CapturedPage,
+      _preferences: ExportPreferences,
+      onProgress: (progress: 'converting' | 'summarizing') => void,
+    ) => {
+      reportProgress = onProgress;
+      return new Promise<FinalExport>((resolve) => { resolveExport = resolve; });
     });
+    const copyFinalMarkdown = vi.fn(async () => undefined);
+    popup(root, { createFinalExport, copyFinalMarkdown });
 
-    expect(root.querySelectorAll('input[name="provider"]')).toHaveLength(3);
-    expect(root.querySelector<HTMLInputElement>('#detail')!.disabled).toBe(true);
-    const none = root.querySelector<HTMLInputElement>('input[value="none"]')!;
-    const browser = root.querySelector<HTMLInputElement>('input[value="browser"]')!;
-    none.checked = false;
-    browser.checked = true;
-    browser.dispatchEvent(new window.Event('change', { bubbles: true }));
-    expect(root.querySelector<HTMLInputElement>('#detail')!.disabled).toBe(false);
+    await vi.waitFor(() => expect(root.textContent).toContain('Converting to Markdown'));
+    reportProgress('summarizing');
+    await vi.waitFor(() => expect(root.textContent).toContain('Summarizing locally'));
+    resolveExport(browserFallback);
 
-    root.querySelector<HTMLButtonElement>('#export')!.click();
-    await vi.waitFor(() => expect(createFinalExport).toHaveBeenCalledWith(captured, 'focused', 75, 'browser'));
-
+    await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledWith(markdown));
+    expect(createFinalExport).toHaveBeenCalledWith(captured, preferences, expect.any(Function));
     expect(root.querySelectorAll('.markdown-result')).toHaveLength(1);
     expect(root.querySelector('textarea, .output-grid, #baseline, #derived')).toBeNull();
+    expect(root.textContent).toContain('Copied to clipboard.');
+    expect(root.textContent).toContain('~');
+    expect(root.textContent).toContain('tokens estimated');
     expect(root.textContent).toContain('Requested: Browser');
     expect(root.textContent).toContain('Actual: Custom extractive');
     expect(root.textContent).toContain('Chrome Summarizer is unavailable.');
+  });
 
+  it('retains the exact result and permits retry when automatic copying fails', async () => {
+    const { document } = parseHTML('<!doctype html><main id="app"></main>');
+    const root = document.querySelector<HTMLElement>('#app')!;
+    const copyFinalMarkdown = vi.fn()
+      .mockRejectedValueOnce(new Error('Clipboard denied'))
+      .mockResolvedValueOnce(undefined);
+    popup(root, { copyFinalMarkdown });
+
+    await vi.waitFor(() => expect(root.textContent).toContain('Copy failed.'));
+    expect(root.textContent).toContain('Clipboard denied');
+    expect(root.querySelectorAll('.markdown-result')).toHaveLength(1);
     root.querySelector<HTMLButtonElement>('#copy')!.click();
+
+    await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledTimes(2));
+    expect(root.textContent).toContain('Copied to clipboard.');
+  });
+
+  it('offers an export retry after capture failure without claiming copy succeeded', async () => {
+    const { document } = parseHTML('<!doctype html><main id="app"></main>');
+    const root = document.querySelector<HTMLElement>('#app')!;
+    const captureActiveTab = vi.fn()
+      .mockResolvedValueOnce({ error: 'This page cannot be exported.' })
+      .mockResolvedValueOnce({ id: 'export-1' });
+    popup(root, { captureActiveTab });
+
+    await vi.waitFor(() => expect(root.textContent).toContain('Export failed'));
+    expect(root.textContent).toContain('No Markdown was copied.');
+    root.querySelector<HTMLButtonElement>('#retry')!.click();
+
+    await vi.waitFor(() => expect(captureActiveTab).toHaveBeenCalledTimes(2));
+  });
+
+  it('preserves the result when downloading fails', async () => {
+    const { document } = parseHTML('<!doctype html><main id="app"></main>');
+    const root = document.querySelector<HTMLElement>('#app')!;
+    popup(root, { downloadFinalMarkdown: async () => { throw new Error('Download denied'); } });
+
+    await vi.waitFor(() => expect(root.querySelector<HTMLButtonElement>('#download')).not.toBeNull());
     root.querySelector<HTMLButtonElement>('#download')!.click();
-    await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledWith(markdown));
-    await vi.waitFor(() => expect(downloadFinalMarkdown).toHaveBeenCalledWith(markdown, 'Popup fixture'));
+
+    await vi.waitFor(() => expect(root.textContent).toContain('Download denied'));
+    expect(root.querySelectorAll('.markdown-result')).toHaveLength(1);
   });
 });

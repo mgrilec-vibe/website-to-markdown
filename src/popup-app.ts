@@ -1,117 +1,156 @@
+import { estimateMarkdownTokens } from './export-metrics';
+import type { ExportPreferences } from './export-preferences';
 import { createPreviewOutput, renderPreviewMarkdown } from './preview-output';
-import { updateDetailControl } from './popup-controls';
-import type { CapturedPage, ExportMode, StoredExport, SummarizationProvider } from './export-domain';
-import type { FinalExport } from './export-workflow';
+import type { CapturedPage, StoredExport } from './export-domain';
+import type { FinalExport, FinalExportProgress } from './export-workflow';
 
 export interface PopupDependencies {
   readonly captureActiveTab: () => Promise<{ readonly id?: string; readonly error?: string }>;
   readonly loadExport: (id: string) => Promise<StoredExport | undefined>;
   readonly deriveReadabilityFocus: (captured: CapturedPage) => CapturedPage;
-  readonly createFinalExport: (captured: CapturedPage, mode: ExportMode, detail: number, provider: SummarizationProvider) => Promise<FinalExport>;
+  readonly createFinalExport: (
+    captured: CapturedPage,
+    preferences: ExportPreferences,
+    onProgress: (progress: FinalExportProgress) => void,
+  ) => Promise<FinalExport>;
   readonly copyFinalMarkdown: (markdown: string) => Promise<void>;
   readonly downloadFinalMarkdown: (markdown: string, title: string) => Promise<void>;
+  readonly openSettings: () => Promise<void>;
 }
 
-function providerLabel(provider: SummarizationProvider): string {
-  return provider === 'none' ? 'None' : provider === 'browser' ? 'Browser' : 'Custom';
+type ResultState = 'ready' | 'copying' | 'copied' | 'copy-failed';
+
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
-function originLabel(origin: 'none' | 'deterministic-diverse-extractive' | 'local-ai'): string {
-  return origin === 'none' ? 'None' : origin === 'local-ai' ? 'Local AI' : 'Custom extractive';
-}
+export function mountExportPopup(
+  root: HTMLElement,
+  preferences: ExportPreferences,
+  dependencies: PopupDependencies,
+): void {
+  const renderProgress = (message: string): void => {
+    root.innerHTML = `
+      <section class="export-popup export-progress">
+        <p class="eyebrow">Website to Markdown</p>
+        <h1>Exporting this page</h1>
+        <p id="status" role="status" aria-live="polite">${message}</p>
+        <button id="settings" class="link-button" type="button">Settings</button>
+      </section>
+    `;
+    root.querySelector<HTMLButtonElement>('#settings')!.addEventListener('click', () => {
+      void dependencies.openSettings();
+    });
+  };
 
-export function mountExportPopup(root: HTMLElement, dependencies: PopupDependencies): void {
-  const renderResult = (title: string, finalExport: FinalExport): void => {
+  const renderFailure = (message: string): void => {
+    root.innerHTML = `
+      <section class="export-popup export-failure">
+        <p class="eyebrow">Website to Markdown</p>
+        <h1>Export failed</h1>
+        <p class="notice error" role="alert">${message}</p>
+        <p>No Markdown was copied.</p>
+        <div class="actions">
+          <button id="retry" type="button">Try again</button>
+          <button id="settings" class="link-button" type="button">Settings</button>
+        </div>
+      </section>
+    `;
+    root.querySelector<HTMLButtonElement>('#retry')!.addEventListener('click', () => { void runExport(); });
+    root.querySelector<HTMLButtonElement>('#settings')!.addEventListener('click', () => {
+      void dependencies.openSettings();
+    });
+  };
+
+  const renderResult = (title: string, finalExport: FinalExport, state: ResultState, actionError?: string): void => {
     const { result, capability, language, browserFailure } = finalExport;
+    const copied = state === 'copied';
+    const copyFailed = state === 'copy-failed';
     root.innerHTML = `
       <section class="export-popup export-result">
         <p class="eyebrow">Website to Markdown</p>
         <h1 id="title"></h1>
+        <p id="completion" class="${copied ? 'success' : copyFailed ? 'notice error' : 'muted'}" role="status" aria-live="polite"></p>
         <p id="provider-origin" class="muted"></p>
         <section id="model" class="notice" ${browserFailure ? '' : 'hidden'}></section>
+        <section id="action-error" class="notice error" ${actionError ? '' : 'hidden'}></section>
         <div class="actions">
-          <button id="copy" type="button">Copy Markdown</button>
+          <button id="copy" type="button" ${state === 'copying' ? 'disabled' : ''}></button>
           <button id="download" type="button">Download .md</button>
+          <button id="settings" class="link-button" type="button">Settings</button>
         </div>
       </section>
     `;
     root.querySelector<HTMLHeadingElement>('#title')!.textContent = title;
+    root.querySelector<HTMLElement>('#completion')!.textContent = copied
+      ? 'Copied to clipboard.'
+      : copyFailed
+        ? 'Copy failed. Your Markdown is ready to copy again.'
+        : state === 'copying'
+          ? 'Copying Markdown…'
+          : 'Markdown is ready.';
+    root.querySelector<HTMLButtonElement>('#copy')!.textContent = state === 'copying' ? 'Copying Markdown…' : 'Copy Markdown';
     const output = createPreviewOutput(root.ownerDocument);
     root.querySelector<HTMLElement>('.export-result')!.append(output.element);
     root.querySelector<HTMLParagraphElement>('#provider-origin')!.textContent = [
-      `Requested: ${providerLabel(result.metadata.requestedProvider)}`,
-      `Actual: ${originLabel(result.metadata.summaryOrigin)}`,
+      `Requested: ${preferences.provider === 'none' ? 'None' : preferences.provider === 'browser' ? 'Browser' : 'Custom'}`,
+      `Actual: ${result.metadata.summaryOrigin === 'none' ? 'None' : result.metadata.summaryOrigin === 'local-ai' ? 'Local AI' : 'Custom extractive'}`,
       result.metadata.requestedProvider === 'none' ? 'Detail: inactive' : `Detail: ${result.metadata.detail}/100`,
       `${result.metadata.words} words`,
       `${result.metadata.bytes} bytes`,
+      `~${estimateMarkdownTokens(result.markdown)} tokens estimated`,
       `Language: ${language.primaryLanguage ?? 'unknown'}`,
       `Model: ${capability.summarizer}`,
     ].join(' · ');
     root.querySelector<HTMLElement>('#model')!.textContent = browserFailure ?? '';
+    root.querySelector<HTMLElement>('#action-error')!.textContent = actionError ?? '';
     output.metadata.textContent = `Source: ${result.metadata.sourceUrl} · Captured: ${result.metadata.capturedAt} · Export: ${result.metadata.exportMode}`;
     renderPreviewMarkdown(output.view, result.markdown);
-    const copy = root.querySelector<HTMLButtonElement>('#copy')!;
-    copy.addEventListener('click', async () => {
-      await dependencies.copyFinalMarkdown(result.markdown);
-      copy.textContent = 'Copied';
-      root.ownerDocument.defaultView?.setTimeout(() => { copy.textContent = 'Copy Markdown'; }, 1_500);
-    });
+    root.querySelector<HTMLButtonElement>('#copy')!.addEventListener('click', () => { void copyFinal(title, finalExport); });
     root.querySelector<HTMLButtonElement>('#download')!.addEventListener('click', async () => {
-      await dependencies.downloadFinalMarkdown(result.markdown, result.metadata.title);
+      try {
+        await dependencies.downloadFinalMarkdown(result.markdown, result.metadata.title);
+      } catch (error) {
+        renderResult(title, finalExport, state, errorMessage(error, 'Unable to download Markdown. Try again.'));
+      }
+    });
+    root.querySelector<HTMLButtonElement>('#settings')!.addEventListener('click', () => {
+      void dependencies.openSettings();
     });
   };
 
-  root.innerHTML = `
-    <section class="export-popup">
-      <p class="eyebrow">Website to Markdown</p>
-      <h1>Capture this page</h1>
-      <p>Convert the active page locally, then review the final Markdown before it leaves Chrome.</p>
-      <section class="controls" aria-label="Export controls">
-        <fieldset><legend>Summarization</legend>
-          <label><input type="radio" name="provider" value="none" checked> None</label>
-          <label><input type="radio" name="provider" value="browser"> Browser</label>
-          <label><input type="radio" name="provider" value="custom"> Custom</label>
-        </fieldset>
-        <fieldset><legend>Export mode</legend>
-          <label><input type="radio" name="mode" value="focused" checked> Focused content</label>
-          <label><input type="radio" name="mode" value="complete"> Complete page</label>
-        </fieldset>
-        <label for="detail">Detail <output id="detail-value">75</output>/100</label>
-        <input id="detail" type="range" min="0" max="100" value="75">
-        <p id="detail-description" class="muted">Detail applies to Browser and Custom summarization.</p>
-        <button id="export" type="button">Convert to Markdown</button>
-        <output id="status" aria-live="polite"></output>
-      </section>
-    </section>
-  `;
-  const providerInputs = [...root.querySelectorAll<HTMLInputElement>('input[name="provider"]')];
-  const modeInputs = [...root.querySelectorAll<HTMLInputElement>('input[name="mode"]')];
-  const detailInput = root.querySelector<HTMLInputElement>('#detail')!;
-  const detailValue = root.querySelector<HTMLOutputElement>('#detail-value')!;
-  const detailDescription = root.querySelector<HTMLParagraphElement>('#detail-description')!;
-  const button = root.querySelector<HTMLButtonElement>('#export')!;
-  const status = root.querySelector<HTMLOutputElement>('#status')!;
-  const selectedProvider = (): SummarizationProvider => (providerInputs.find((input) => input.checked)?.value as SummarizationProvider | undefined) ?? 'none';
-  const updateDetail = (): void => { updateDetailControl(selectedProvider(), detailInput, detailDescription); };
-  providerInputs.forEach((input) => input.addEventListener('change', updateDetail));
-  detailInput.addEventListener('input', () => { detailValue.value = detailInput.value; });
-  updateDetail();
+  const copyFinal = async (title: string, finalExport: FinalExport): Promise<void> => {
+    renderResult(title, finalExport, 'copying');
+    try {
+      await dependencies.copyFinalMarkdown(finalExport.result.markdown);
+      renderResult(title, finalExport, 'copied');
+    } catch (error) {
+      renderResult(title, finalExport, 'copy-failed', errorMessage(error, 'Unable to copy Markdown. Try again.'));
+    }
+  };
 
-  button.addEventListener('click', async () => {
-    button.disabled = true;
-    status.textContent = 'Capturing the active page locally…';
+  const runExport = async (): Promise<void> => {
+    renderProgress('Capturing the active page locally…');
     try {
       const response = await dependencies.captureActiveTab();
       if (response.error || !response.id) throw new Error(response.error || 'Capture did not return an export.');
       const stored = await dependencies.loadExport(response.id);
       if (!stored) throw new Error('This temporary export is no longer available. Capture the page again.');
-      status.textContent = selectedProvider() === 'browser' ? 'Preparing Chrome local summarization…' : 'Preparing final Markdown…';
+      renderProgress('Converting to Markdown…');
       const captured = dependencies.deriveReadabilityFocus(stored.captured);
-      const mode = (modeInputs.find((input) => input.checked)?.value as ExportMode | undefined) ?? 'focused';
-      renderResult(captured.metadata.title, await dependencies.createFinalExport(captured, mode, Number(detailInput.value), selectedProvider()));
+      const finalExport = await dependencies.createFinalExport(captured, preferences, (progress) => {
+        renderProgress(progress === 'summarizing' ? 'Summarizing locally…' : 'Converting to Markdown…');
+      });
+      if (preferences.autoCopy) {
+        await copyFinal(captured.metadata.title, finalExport);
+      } else {
+        renderResult(captured.metadata.title, finalExport, 'ready');
+      }
     } catch (error) {
-      status.textContent = error instanceof Error ? error.message : 'Unable to capture this page.';
-      button.disabled = false;
+      renderFailure(errorMessage(error, 'Unable to export this page.'));
     }
-  });
+  };
+
+  void runExport();
 }

@@ -32,12 +32,14 @@ describe('provider result workflow', () => {
   });
 
   it('labels an unavailable Browser request as a Custom actual result', async () => {
-    const result = await createFinalExport(captured, 'complete', 15, 'browser', unavailableAdapter);
+    const progress: string[] = [];
+    const result = await createFinalExport(captured, 'complete', 15, 'browser', unavailableAdapter, (phase) => { progress.push(phase); });
 
     expect(result.result.metadata).toMatchObject({ requestedProvider: 'browser', summaryOrigin: 'deterministic-diverse-extractive' });
     expect(result.browserFailure).toContain('unavailable');
     expect(result.result.markdown).toContain('requested_provider: browser');
     expect(result.result.markdown).toContain('summary_origin: deterministic-diverse-extractive');
+    expect(progress).toEqual(['converting']);
   });
 
   it('preserves Browser as requested and local AI as the successful actual origin', async () => {
@@ -54,19 +56,23 @@ describe('provider result workflow', () => {
         reductionStages: 0,
       }),
     };
+    const progress: string[] = [];
 
-    const result = await createFinalExport(captured, 'complete', 15, 'browser', adapter);
+    const result = await createFinalExport(captured, 'complete', 15, 'browser', adapter, (phase) => { progress.push(phase); });
 
     expect(result.result.metadata).toMatchObject({ requestedProvider: 'browser', summaryOrigin: 'local-ai' });
     expect(result.result.markdown).toContain('Locally generated summary');
     expect(destroy).toHaveBeenCalledOnce();
+    expect(progress).toEqual(['converting', 'summarizing']);
   });
 
   it('does not check or invoke Browser AI at Detail 100', async () => {
     const checkCapability = vi.fn(unavailableAdapter.checkCapability);
-    const result = await createFinalExport(captured, 'complete', 100, 'browser', { ...unavailableAdapter, checkCapability });
+    const progress: string[] = [];
+    const result = await createFinalExport(captured, 'complete', 100, 'browser', { ...unavailableAdapter, checkCapability }, (phase) => { progress.push(phase); });
 
     expect(checkCapability).not.toHaveBeenCalled();
     expect(result.result.metadata).toMatchObject({ requestedProvider: 'browser', summaryOrigin: 'none', detail: 100 });
+    expect(progress).toEqual(['converting']);
   });
 });

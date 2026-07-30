@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "developer-guide-pypa-packaging",
+  "category": "developer-guide",
+  "tags": [
+    "developer-guide",
+    "v1"
+  ],
+  "publisherDomain": "packaging.python.org",
+  "markupPlatform": "sphinx",
+  "expectedFocus": "article",
+  "provenance": {
+    "originUrl": "https://packaging.python.org/en/latest/tutorials/packaging-projects/",
+    "finalUrl": "https://packaging.python.org/en/latest/tutorials/packaging-projects/",
+    "capturedAt": "2026-07-29T21:23:14.329Z",
+    "documentSha256": "f1c8982fa738617c139b998e1113f2a3d7ed35e43235096ff89f9b0f8e77e8ca",
+    "screenshotSha256": "674973f9126a96f2ff8d666f737966e8194d8e71d08517464e4b1c7fcbb1352a",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "Packaging Python Projects - Python Packaging User Guide",
+    "readabilityTitle": "Packaging Python Projects - Python Packaging User Guide",
+    "selectedHeading": "Packaging Python Projects - Python Packaging User Guide"
+  },
+  "limitations": [],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:23:15.205Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

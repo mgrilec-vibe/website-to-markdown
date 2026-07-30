@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "rendered-documentation-react-learn",
+  "category": "rendered-documentation",
+  "tags": [
+    "rendered-documentation",
+    "v1"
+  ],
+  "publisherDomain": "react.dev",
+  "markupPlatform": "react-docs",
+  "expectedFocus": "article",
+  "provenance": {
+    "originUrl": "https://react.dev/learn",
+    "finalUrl": "https://react.dev/learn",
+    "capturedAt": "2026-07-29T21:45:40.777Z",
+    "documentSha256": "c55e9c738b85e5ef282877b98afb2d05021194b788e9e78e67d3007520038a79",
+    "screenshotSha256": "2fd6824cde30b048eb56540151611ab5bc8b8b075182bc308513d514fe8e5c36",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "screenshotMode": "viewport",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "Quick Start – React",
+    "readabilityTitle": "Quick Start – React",
+    "selectedHeading": "Quick Start – React"
+  },
+  "limitations": [
+    "Cross-origin and protected frame content may be unavailable."
+  ],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:45:42.368Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

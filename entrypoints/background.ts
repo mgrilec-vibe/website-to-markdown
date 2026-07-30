@@ -2,6 +2,8 @@ import { captureAndStore } from '../src/capture-transport';
 import { newExportId, saveExport } from '../src/storage';
 import type { CapturedPage } from '../src/export-domain';
 
+export const SETTINGS_MENU_ID = 'open-settings';
+
 function capturePageInTab(): CapturedPage {
   const removeAlways = (root: ParentNode): void => {
     root.querySelectorAll('script,style,noscript,template').forEach((node) => node.remove());
@@ -65,5 +67,14 @@ export default defineBackground(() => {
       (error: unknown) => sendResponse({ error: error instanceof Error ? error.message : 'Unable to export this page.' }),
     );
     return true;
+  });
+  chrome.contextMenus.create({
+    id: SETTINGS_MENU_ID,
+    title: 'Settings',
+    contexts: ['action'],
+  });
+  chrome.contextMenus.onClicked.addListener((info) => {
+    if (info.menuItemId !== SETTINGS_MENU_ID) return;
+    void chrome.runtime.openOptionsPage();
   });
 });

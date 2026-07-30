@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "boundary-threejs-webgl",
+  "category": "conversion-boundary",
+  "tags": [
+    "conversion-boundary",
+    "v1"
+  ],
+  "publisherDomain": "threejs.org",
+  "markupPlatform": "threejs-webgl",
+  "expectedFocus": "unavailable",
+  "provenance": {
+    "originUrl": "https://threejs.org/examples/#webgl_animation_skinning_morph",
+    "finalUrl": "https://threejs.org/examples/#webgl_animation_skinning_morph",
+    "capturedAt": "2026-07-29T21:52:49.398Z",
+    "documentSha256": "7502cd2e978b7a6fac0912a95ea416f2a7cddc8255e7ce7f392db595e00613de",
+    "screenshotSha256": "8a89411644d5786b0ad34f5f358c8b069ab45109d21b9c94fc358c845833c9f6",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "screenshotMode": "viewport",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "three.js examples",
+    "readabilityTitle": "three.js examples",
+    "selectedHeading": "three.js examples"
+  },
+  "limitations": [
+    "Cross-origin and protected frame content may be unavailable."
+  ],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:52:53.410Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}

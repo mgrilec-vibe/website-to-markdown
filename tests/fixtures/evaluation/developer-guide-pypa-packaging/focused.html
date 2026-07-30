@@ -1,0 +1,416 @@
+<div id="readability-page-1" class="page"><article role="main" id="furo-main-content">
+          <section id="packaging-python-projects">
+
+<p>This tutorial walks you through how to package a simple Python project. It will
+show you how to add the necessary files and structure to create the package, how
+to build the package, and how to upload it to the Python Package Index (PyPI).</p>
+<div>
+<p>Tip</p>
+<p>If you have trouble running the commands in this tutorial, please copy the command
+and its output, then <a href="https://github.com/pypa/packaging-problems/issues/new?template=packaging_tutorial.yml&amp;title=Trouble+with+the+packaging+tutorial&amp;guide=https://packaging.python.org/tutorials/packaging-projects">open an issue</a> on the <a href="https://github.com/pypa/packaging-problems">packaging-problems</a> repository on
+GitHub. We’ll do our best to help you!</p>
+</div>
+<p>Some of the commands require a newer version of <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a>, so start by making
+sure you have the latest version installed:</p>
+<div>
+<p><label for="tab-set--0-input--1">Unix/macOS</label></p><div><pre id="codecell0"><span></span>python3<span> </span>-m<span> </span>pip<span> </span>install<span> </span>--upgrade<span> </span>pip
+</pre></div>
+<p><label for="tab-set--0-input--2">Windows</label></p><div><pre id="codecell1"><span></span>py -m pip install --upgrade pip
+</pre></div>
+</div>
+<section id="a-simple-project">
+<h2>A simple project<a href="#a-simple-project" title="Link to this heading">¶</a></h2>
+<p>This tutorial uses a simple project named
+<code><span>example_package_YOUR_USERNAME_HERE</span></code>. If your username is <code><span>me</span></code>, then the
+package would be <code><span>example_package_me</span></code>; this ensures that you have a unique
+package name that doesn’t conflict with packages uploaded by other people
+following this tutorial. We recommend following this tutorial as-is using this
+project, before packaging your own project.</p>
+<p>Create the following file structure locally:</p>
+<div><pre id="codecell2"><span></span>packaging_tutorial/
+└── src/
+    └── example_package_YOUR_USERNAME_HERE/
+        ├── __init__.py
+        └── example.py
+</pre></div>
+<p>The directory containing the Python files should match the project name. This
+simplifies the configuration and is more obvious to users who install the package.</p>
+<p>Creating the file <code><span>__init__.py</span></code> is recommended because the existence of an
+<code><span>__init__.py</span></code> file allows users to import the directory as a regular package,
+even if (as is the case in this tutorial) <code><span>__init__.py</span></code> is empty.
+<a href="#namespace-packages" id="id1" role="doc-noteref"><span>[</span>1<span>]</span></a></p>
+<p><code><span>example.py</span></code> is an example of a module within the package that could
+contain the logic (functions, classes, constants, etc.) of your package.
+Open that file and enter the following content:</p>
+<div><pre id="codecell3"><span></span><span>def</span><span> </span><span>add_one</span><span>(</span><span>number</span><span>):</span>
+    <span>return</span> <span>number</span> <span>+</span> <span>1</span>
+</pre></div>
+<p>If you are unfamiliar with Python’s <a href="https://packaging.python.org/en/latest/glossary/#term-Module"><span>modules</span></a> and
+<a href="https://packaging.python.org/en/latest/glossary/#term-Import-Package"><span>import packages</span></a>, take a few minutes to read over the
+<a href="https://docs.python.org/3/tutorial/modules.html#packages">Python documentation for packages and modules</a>.</p>
+<p>Once you create this structure, you’ll want to run all of the commands in this
+tutorial within the <code><span>packaging_tutorial</span></code> directory.</p>
+</section>
+<section id="creating-the-package-files">
+<h2>Creating the package files<a href="#creating-the-package-files" title="Link to this heading">¶</a></h2>
+<p>You will now add files that are used to prepare the project for distribution.
+When you’re done, the project structure will look like this:</p>
+<div><pre id="codecell4"><span></span>packaging_tutorial/
+├── LICENSE
+├── pyproject.toml
+├── README.md
+├── src/
+│   └── example_package_YOUR_USERNAME_HERE/
+│       ├── __init__.py
+│       └── example.py
+└── tests/
+</pre></div>
+</section>
+<section id="creating-a-test-directory">
+<h2>Creating a test directory<a href="#creating-a-test-directory" title="Link to this heading">¶</a></h2>
+<p><code><span>tests/</span></code> is a placeholder for test files. Leave it empty for now.</p>
+</section>
+<section id="choosing-a-build-backend">
+<span id="choosing-build-backend"></span><h2>Choosing a build backend<a href="#choosing-a-build-backend" title="Link to this heading">¶</a></h2>
+<p>Tools like <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a> and <a href="https://packaging.python.org/en/latest/key_projects/#build"><span>build</span></a> do not actually convert your sources
+into a <a href="https://packaging.python.org/en/latest/glossary/#term-Distribution-Package"><span>distribution package</span></a> (like a wheel);
+that job is performed by a <a href="https://packaging.python.org/en/latest/glossary/#term-Build-Backend"><span>build backend</span></a>. The build backend determines how
+your project will specify its configuration, including metadata (information
+about the project, for example, the name and tags that are displayed on PyPI)
+and input files. Build backends have different levels of functionality, such as
+whether they support building <a href="https://packaging.python.org/en/latest/glossary/#term-Extension-Module"><span>extension modules</span></a>, and
+you should choose one that suits your needs and preferences.</p>
+<p>You can choose from a number of backends; this tutorial uses <a href="https://packaging.python.org/en/latest/key_projects/#hatch"><span>Hatchling</span></a> by default, but it will work identically with <a href="https://packaging.python.org/en/latest/key_projects/#setuptools"><span>Setuptools</span></a>,
+<a href="https://packaging.python.org/en/latest/key_projects/#flit"><span>Flit</span></a>, <a href="https://packaging.python.org/en/latest/key_projects/#pdm"><span>PDM</span></a>, and others that support the <code><span>[project]</span></code>
+table for <a href="#configuring-metadata"><span>metadata</span></a>.</p>
+<div>
+<p>Note</p>
+<p>Some build backends are part of larger tools that provide a command-line
+interface with additional features like project initialization and version
+management, as well as building, uploading, and installing packages. This
+tutorial uses single-purpose tools that work independently.</p>
+</div>
+<p>The <code><span>pyproject.toml</span></code> tells <a href="https://packaging.python.org/en/latest/glossary/#term-Build-Frontend"><span>build frontend</span></a> tools like <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a> and
+<a href="https://packaging.python.org/en/latest/key_projects/#build"><span>build</span></a> which backend to use for your project. Below are some
+examples for common build backends, but check your backend’s own documentation
+for more details.</p>
+<div>
+<p><label for="tab-set--1-input--1">Hatchling</label></p><div><pre id="codecell5"><span></span><span>[build-system]</span>
+<span>requires</span><span> </span><span>=</span><span> </span><span>[</span><span>"hatchling &gt;= 1.26"</span><span>]</span>
+<span>build-backend</span><span> </span><span>=</span><span> </span><span>"hatchling.build"</span>
+</pre></div>
+<p><label for="tab-set--1-input--2">setuptools</label></p><div><pre id="codecell6"><span></span><span>[build-system]</span>
+<span>requires</span><span> </span><span>=</span><span> </span><span>[</span><span>"setuptools &gt;= 77.0.3"</span><span>]</span>
+<span>build-backend</span><span> </span><span>=</span><span> </span><span>"setuptools.build_meta"</span>
+</pre></div>
+<p><label for="tab-set--1-input--3">Flit</label></p><div><pre id="codecell7"><span></span><span>[build-system]</span>
+<span>requires</span><span> </span><span>=</span><span> </span><span>[</span><span>"flit_core &gt;= 3.12.0, &lt;4"</span><span>]</span>
+<span>build-backend</span><span> </span><span>=</span><span> </span><span>"flit_core.buildapi"</span>
+</pre></div>
+<p><label for="tab-set--1-input--4">PDM</label></p><div><pre id="codecell8"><span></span><span>[build-system]</span>
+<span>requires</span><span> </span><span>=</span><span> </span><span>[</span><span>"pdm-backend &gt;= 2.4.0"</span><span>]</span>
+<span>build-backend</span><span> </span><span>=</span><span> </span><span>"pdm.backend"</span>
+</pre></div>
+<p><label for="tab-set--1-input--5">uv-build</label></p><div><pre id="codecell9"><span></span><span>[build-system]</span>
+<span>requires</span><span> </span><span>=</span><span> </span><span>[</span><span>"uv_build &gt;= 0.12.0, &lt;0.13.0"</span><span>]</span>
+<span>build-backend</span><span> </span><span>=</span><span> </span><span>"uv_build"</span>
+</pre></div>
+</div>
+<p>The <code><span>requires</span></code> key is a list of packages that are needed to build your package.
+The <a href="https://packaging.python.org/en/latest/glossary/#term-Build-Frontend"><span>frontend</span></a> should install them automatically when building your package.
+Frontends usually run builds in isolated environments, so omitting dependencies
+here may cause build-time errors.
+This should always include your backend’s package, and might have other build-time
+dependencies.
+The minimum version specified in the above code block is the one that introduced support
+for <a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license-and-license-files"><span>the new license metadata</span></a>.</p>
+<p>The <code><span>build-backend</span></code> key is the name of the Python object that frontends will use
+to perform the build.</p>
+<p>Both of these values will be provided by the documentation for your build
+backend, or generated by its command line interface. There should be no need for
+you to customize these settings.</p>
+<p>Additional configuration of the build tool will either be in a <code><span>tool</span></code> section
+of the <code><span>pyproject.toml</span></code>, or in a special file defined by the build tool. For
+example, when using <code><span>setuptools</span></code> as your build backend, additional configuration
+may be added to a <code><span>setup.py</span></code> or <code><span>setup.cfg</span></code> file, and specifying
+<code><span>setuptools.build_meta</span></code> in your build allows the tools to locate and use these
+automatically.</p>
+<section id="configuring-metadata">
+<span id="id2"></span><h3>Configuring metadata<a href="#configuring-metadata" title="Link to this heading">¶</a></h3>
+<p>Open <code><span>pyproject.toml</span></code> and enter the following content. Change the <code><span>name</span></code>
+to include your username; this ensures that you have a unique
+package name that doesn’t conflict with packages uploaded by other people
+following this tutorial.</p>
+<div><pre id="codecell10"><span></span><span>[project]</span>
+<span>name</span><span> </span><span>=</span><span> </span><span>"example_package_YOUR_USERNAME_HERE"</span>
+<span>version</span><span> </span><span>=</span><span> </span><span>"0.0.1"</span>
+<span>authors</span><span> </span><span>=</span><span> </span><span>[</span>
+<span>  </span><span>{</span><span> </span><span>name</span><span>=</span><span>"Example Author"</span><span>,</span><span> </span><span>email</span><span>=</span><span>"author@example.com"</span><span> </span><span>},</span>
+<span>]</span>
+<span>description</span><span> </span><span>=</span><span> </span><span>"A small example package"</span>
+<span>readme</span><span> </span><span>=</span><span> </span><span>"README.md"</span>
+<span>requires-python</span><span> </span><span>=</span><span> </span><span>"&gt;=3.9"</span>
+<span>classifiers</span><span> </span><span>=</span><span> </span><span>[</span>
+<span>    </span><span>"Programming Language :: Python :: 3"</span><span>,</span>
+<span>    </span><span>"Operating System :: OS Independent"</span><span>,</span>
+<span>]</span>
+<span>license</span><span> </span><span>=</span><span> </span><span>"MIT"</span>
+<span>license-files</span><span> </span><span>=</span><span> </span><span>[</span><span>"LICEN[CS]E*"</span><span>]</span>
+
+<span>[project.urls]</span>
+<span>Homepage</span><span> </span><span>=</span><span> </span><span>"https://github.com/pypa/sampleproject"</span>
+<span>Issues</span><span> </span><span>=</span><span> </span><span>"https://github.com/pypa/sampleproject/issues"</span>
+</pre></div>
+<ul>
+<li><p><code><span>name</span></code> is the <em>distribution name</em> of your package. This can be any name as
+long as it only contains letters, numbers, <code><span>.</span></code>, <code><span>_</span></code> , and <code><span>-</span></code>. It also
+must not already be taken on PyPI. <strong>Be sure to update this with your
+username</strong> for this tutorial, as this ensures you won’t try to upload a
+package with the same name as one which already exists.</p></li>
+<li><p><code><span>version</span></code> is the package version. (Some build backends allow it to be
+specified another way, such as from a file or Git tag.)</p></li>
+<li><p><code><span>authors</span></code> is used to identify the author of the package; you specify a name
+and an email for each author. You can also list <code><span>maintainers</span></code> in the same
+format.</p></li>
+<li><p><code><span>description</span></code> is a short, one-sentence summary of the package.</p></li>
+<li><p><code><span>readme</span></code> is a path to a file containing a detailed description of the
+package. This is shown on the package detail page on PyPI.
+In this case, the description is loaded from <code><span>README.md</span></code> (which is a
+common pattern). There also is a more advanced table form described in the
+<a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml"><span>pyproject.toml guide</span></a>.</p></li>
+<li><p><code><span>requires-python</span></code> gives the versions of Python supported by your
+project. An installer like <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a> will look back through older versions of
+packages until it finds one that has a matching Python version.</p></li>
+<li><p><code><span>classifiers</span></code> gives the index and <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a> some additional metadata
+about your package. In this case, the package is only compatible with Python
+3 and is OS-independent. You should
+always include at least which version(s) of Python your package works on
+and which operating systems
+your package will work on. For a complete list of classifiers, see
+<a href="https://pypi.org/classifiers/">https://pypi.org/classifiers/</a>.</p></li>
+<li><p><code><span>license</span></code> is the <a href="https://packaging.python.org/en/latest/glossary/#term-License-Expression"><span>SPDX license expression</span></a> of
+your <a href="https://packaging.python.org/en/latest/glossary/#term-Distribution-Archive"><span>Distribution Archive</span></a> files.</p></li>
+<li><p><code><span>license-files</span></code> is the list of glob paths to the license files,
+relative to the directory where <code><span>pyproject.toml</span></code> is located.</p></li>
+<li><p><code><span>urls</span></code> lets you list any number of extra links to show on PyPI.
+Generally this could be to the source, documentation, issue trackers, etc.</p></li>
+</ul>
+<p>See the <a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml"><span>pyproject.toml guide</span></a> for details
+on these and other fields that can be defined in the <code><span>[project]</span></code>
+table. Other common fields are <code><span>keywords</span></code> to improve discoverability
+and the <code><span>dependencies</span></code> that are required to install your package.</p>
+</section>
+</section>
+<section id="creating-readme-md">
+<h2>Creating README.md<a href="#creating-readme-md" title="Link to this heading">¶</a></h2>
+<p>Open <code><span>README.md</span></code> and enter the following content. You can customize this
+if you’d like.</p>
+<div><pre id="codecell11"><span></span><span># Example Package</span>
+
+This is a simple example package. You can use
+[<span>GitHub-flavored Markdown</span>](<span>https://guides.github.com/features/mastering-markdown/</span>)
+to write your content.
+</pre></div>
+</section>
+<section id="creating-a-license">
+<h2>Creating a LICENSE<a href="#creating-a-license" title="Link to this heading">¶</a></h2>
+<p>It’s important for every <a href="https://packaging.python.org/en/latest/glossary/#term-Distribution-Archive"><span>Distribution Archive</span></a> uploaded to the Python
+Package Index to include a license. This tells users who install your
+<a href="https://packaging.python.org/en/latest/glossary/#term-Distribution-Archive"><span>Distribution Archive</span></a> the terms under which they can use it. For help
+picking a license, see <a href="https://choosealicense.com/">https://choosealicense.com/</a>. Once you have chosen a
+license, open <code><span>LICENSE</span></code> and enter the license text. For example, if you
+had chosen the MIT license:</p>
+<div><pre id="codecell12"><span></span>Copyright (c) 2018 The Python Packaging Authority
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</pre></div>
+<p>Most build backends automatically include license files in packages. See your
+backend’s documentation for more details.
+If you include the path to license in the <code><span>license-files</span></code> key of
+<code><span>pyproject.toml</span></code>, and your build backend supports <span id="index-0"></span><a href="https://peps.python.org/pep-0639/"><strong>PEP 639</strong></a>,
+the file will be automatically included in the package.</p>
+</section>
+<section id="including-other-files">
+<h2>Including other files<a href="#including-other-files" title="Link to this heading">¶</a></h2>
+<p>The files listed above will be included automatically in your
+<a href="https://packaging.python.org/en/latest/glossary/#term-Source-Distribution-or-sdist"><span>source distribution</span></a>. If you want to
+include additional files, see the documentation for your build backend.</p>
+</section>
+<section id="generating-distribution-archives">
+<span id="generating-archives"></span><h2>Generating distribution archives<a href="#generating-distribution-archives" title="Link to this heading">¶</a></h2>
+<p>The next step is to generate <a href="https://packaging.python.org/en/latest/glossary/#term-Distribution-Package"><span>distribution packages</span></a>
+for the package. These are archives that are uploaded to the Python
+Package Index and can be installed by <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a>.</p>
+<p>Make sure you have the latest version of PyPA’s <a href="https://packaging.python.org/en/latest/key_projects/#build"><span>build</span></a> installed:</p>
+<div>
+<p><label for="tab-set--2-input--1">Unix/macOS</label></p><div><pre id="codecell13"><span></span>python3<span> </span>-m<span> </span>pip<span> </span>install<span> </span>--upgrade<span> </span>build
+</pre></div>
+<p><label for="tab-set--2-input--2">Windows</label></p><div><pre id="codecell14"><span></span>py -m pip install --upgrade build
+</pre></div>
+</div>
+
+<p>Now run this command from the same directory where <code><span>pyproject.toml</span></code> is located:</p>
+<div>
+<p><label for="tab-set--3-input--1">Unix/macOS</label></p><div><pre id="codecell15"><span></span>python3<span> </span>-m<span> </span>build
+</pre></div>
+<p><label for="tab-set--3-input--2">Windows</label></p><div><pre id="codecell16"><span></span>py -m build
+</pre></div>
+</div>
+<p>This command should output a lot of text and once completed should generate two
+files in the <code><span>dist</span></code> directory:</p>
+<div><pre id="codecell17"><span></span>dist/
+├── example_package_YOUR_USERNAME_HERE-0.0.1-py3-none-any.whl
+└── example_package_YOUR_USERNAME_HERE-0.0.1.tar.gz
+</pre></div>
+<p>The <code><span>tar.gz</span></code> file is a <a href="https://packaging.python.org/en/latest/glossary/#term-Source-Distribution-or-sdist"><span>source distribution</span></a>
+whereas the <code><span>.whl</span></code> file is a <a href="https://packaging.python.org/en/latest/glossary/#term-Built-Distribution"><span>built distribution</span></a>.
+Newer <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a> versions preferentially install built distributions, but will
+fall back to source distributions if needed. You should always upload a source
+distribution and provide built distributions for the platforms your project is
+compatible with. In this case, our example package is compatible with Python on
+any platform so only one built distribution is needed.</p>
+</section>
+<section id="uploading-the-distribution-archives">
+<h2>Uploading the distribution archives<a href="#uploading-the-distribution-archives" title="Link to this heading">¶</a></h2>
+<p>Finally, it’s time to upload your package to the Python Package Index!</p>
+<p>The first thing you’ll need to do is register an account on TestPyPI, which
+is a separate instance of the package index intended for testing and
+experimentation. It’s great for things like this tutorial where we don’t
+necessarily want to upload to the real index. To register an account, go to
+<a href="https://test.pypi.org/account/register/">https://test.pypi.org/account/register/</a> and complete the steps on that page.
+You will also need to verify your email address before you’re able to upload
+any packages.  For more details, see <a href="https://packaging.python.org/en/latest/guides/using-testpypi/"><span>Using TestPyPI</span></a>.</p>
+<p>To securely upload your project, you’ll need a PyPI <a href="https://test.pypi.org/help/#apitoken">API token</a>. Create one at
+<a href="https://test.pypi.org/manage/account/#api-tokens">https://test.pypi.org/manage/account/#api-tokens</a>, setting the “Scope” to “Entire
+account”. <strong>Don’t close the page until you have copied and saved the token — you
+won’t see that token again.</strong></p>
+<p>Now that you are registered, you can use <a href="https://packaging.python.org/en/latest/key_projects/#twine"><span>twine</span></a> to upload the
+distribution packages. You’ll need to install Twine:</p>
+<div>
+<p><label for="tab-set--4-input--1">Unix/macOS</label></p><div><pre id="codecell18"><span></span>python3<span> </span>-m<span> </span>pip<span> </span>install<span> </span>--upgrade<span> </span>twine
+</pre></div>
+<p><label for="tab-set--4-input--2">Windows</label></p><div><pre id="codecell19"><span></span>py -m pip install --upgrade twine
+</pre></div>
+</div>
+<p>Once installed, run Twine to upload all of the archives under <code><span>dist</span></code>:</p>
+<div>
+<p><label for="tab-set--5-input--1">Unix/macOS</label></p><div><pre id="codecell20"><span></span>python3<span> </span>-m<span> </span>twine<span> </span>upload<span> </span>--repository<span> </span>testpypi<span> </span>dist/*
+</pre></div>
+<p><label for="tab-set--5-input--2">Windows</label></p><div><pre id="codecell21"><span></span>py -m twine upload --repository testpypi dist/*
+</pre></div>
+</div>
+<p>You will be prompted for an API token. Use the token value, including the <code><span>pypi-</span></code>
+prefix. Note that the input will be hidden, so be sure to paste correctly.</p>
+<p>After the command completes, you should see output similar to this:</p>
+<div><pre id="codecell22"><span></span>Uploading distributions to https://test.pypi.org/legacy/
+Enter your API token:
+Uploading example_package_YOUR_USERNAME_HERE-0.0.1-py3-none-any.whl
+100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.2/8.2 kB • 00:01 • ?
+Uploading example_package_YOUR_USERNAME_HERE-0.0.1.tar.gz
+100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.8/6.8 kB • 00:00 • ?
+</pre></div>
+<p>Once uploaded, your package should be viewable on TestPyPI; for example:
+<code><span>https://test.pypi.org/project/example_package_YOUR_USERNAME_HERE</span></code>.</p>
+</section>
+<section id="installing-your-newly-uploaded-package">
+<h2>Installing your newly uploaded package<a href="#installing-your-newly-uploaded-package" title="Link to this heading">¶</a></h2>
+<p>You can use <a href="https://packaging.python.org/en/latest/key_projects/#pip"><span>pip</span></a> to install your package and verify that it works.
+Create a <a href="https://packaging.python.org/en/latest/tutorials/installing-packages/#creating-and-using-virtual-environments"><span>virtual environment</span></a>
+and install your package from TestPyPI:</p>
+<div>
+<p><label for="tab-set--6-input--1">Unix/macOS</label></p><div><pre id="codecell23"><span></span>python3<span> </span>-m<span> </span>pip<span> </span>install<span> </span>--index-url<span> </span>https://test.pypi.org/simple/<span> </span>--no-deps<span> </span>example-package-YOUR-USERNAME-HERE
+</pre></div>
+<p><label for="tab-set--6-input--2">Windows</label></p><div><pre id="codecell24"><span></span>py -m pip install --index-url https://test.pypi.org/simple/ --no-deps example-package-YOUR-USERNAME-HERE
+</pre></div>
+</div>
+<p>Make sure to specify your username in the package name!</p>
+<p>pip should install the package from TestPyPI and the output should look
+something like this:</p>
+<div><pre id="codecell25"><span></span>Collecting example-package-YOUR-USERNAME-HERE
+  Downloading https://test-files.pythonhosted.org/packages/.../example_package_YOUR_USERNAME_HERE_0.0.1-py3-none-any.whl
+Installing collected packages: example_package_YOUR_USERNAME_HERE
+Successfully installed example_package_YOUR_USERNAME_HERE-0.0.1
+</pre></div>
+<div>
+<p>Note</p>
+<p>This example uses <code><span>--index-url</span></code> flag to specify TestPyPI instead of
+live PyPI. Additionally, it specifies <code><span>--no-deps</span></code>. Since TestPyPI doesn’t
+have the same packages as the live PyPI, it’s possible that attempting to
+install dependencies may fail or install something unexpected. While our
+example package doesn’t have any dependencies, it’s a good practice to avoid
+installing dependencies when using TestPyPI.</p>
+</div>
+<p>You can test that it was installed correctly by importing the package.
+Make sure you’re still in your virtual environment, then run Python:</p>
+<div>
+<p><label for="tab-set--7-input--1">Unix/macOS</label></p><div><pre id="codecell26"><span></span>python3
+</pre></div>
+<p><label for="tab-set--7-input--2">Windows</label></p><div><pre id="codecell27"><span></span>py
+</pre></div>
+</div>
+<p>and import the package:</p>
+<div><pre id="codecell28"><span></span><span>&gt;&gt;&gt; </span><span>from</span><span> </span><span>example_package_YOUR_USERNAME_HERE</span><span> </span><span>import</span> <span>example</span>
+<span>&gt;&gt;&gt; </span><span>example</span><span>.</span><span>add_one</span><span>(</span><span>2</span><span>)</span>
+<span>3</span>
+</pre></div>
+</section>
+<section id="next-steps">
+<h2>Next steps<a href="#next-steps" title="Link to this heading">¶</a></h2>
+<p><strong>Congratulations, you’ve packaged and distributed a Python project!</strong>
+✨ 🍰 ✨</p>
+<p>Keep in mind that this tutorial showed you how to upload your package to Test
+PyPI, which isn’t a permanent storage. The Test system occasionally deletes
+packages and accounts. It is best to use TestPyPI for testing and experiments
+like this tutorial.</p>
+<p>When you are ready to upload a real package to the Python Package Index you can
+do much the same as you did in this tutorial, but with these important
+differences:</p>
+<ul>
+<li><p>Choose a memorable and unique name for your package. You don’t have to append
+your username as you did in the tutorial, but you can’t use an existing name.</p></li>
+<li><p>Register an account on <a href="https://pypi.org/">https://pypi.org</a> - note that these are two separate
+servers and the login details from the test server are not shared with the
+main server.</p></li>
+<li><p>Use <code><span>twine</span> <span>upload</span> <span>dist/*</span></code> to upload your package and enter your credentials
+for the account you registered on the real PyPI.  Now that you’re uploading
+the package in production, you don’t need to specify <code><span>--repository</span></code>; the
+package will upload to <a href="https://pypi.org/">https://pypi.org/</a> by default.</p></li>
+<li><p>Install your package from the real PyPI using <code><span>python3</span> <span>-m</span> <span>pip</span> <span>install</span> <span>[your-package]</span></code>.</p></li>
+</ul>
+<p>At this point if you want to read more on packaging Python libraries here are
+some things you can do:</p>
+<ul>
+<li><p>Read about advanced configuration for your chosen build backend:
+<a href="https://hatch.pypa.io/latest/config/metadata/">Hatchling</a>,
+<a href="https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html" title="(in setuptools v83.0.0)"><span>setuptools</span></a>,
+<a href="https://flit.pypa.io/en/stable/pyproject_toml.html" title="(in Flit v4.0.0)"><span>Flit</span></a>, <a href="https://pdm-project.org/latest/reference/pep621/">PDM</a>.</p></li>
+<li><p>Look at the <a href="https://packaging.python.org/en/latest/guides/"><span>guides</span></a> on this site for more advanced
+practical information, or the <a href="https://packaging.python.org/en/latest/discussions/"><span>discussions</span></a>
+for explanations and background on specific topics.</p></li>
+<li><p>Consider packaging tools that provide a single command-line interface for
+project management and packaging, such as <a href="https://packaging.python.org/en/latest/key_projects/#hatch"><span>hatch</span></a>, <a href="https://packaging.python.org/en/latest/key_projects/#flit"><span>flit</span></a>,
+<a href="https://packaging.python.org/en/latest/key_projects/#pdm"><span>pdm</span></a>, and <a href="https://packaging.python.org/en/latest/key_projects/#poetry"><span>poetry</span></a>.</p></li>
+</ul>
+<hr>
+<p>Notes</p>
+
+</section>
+</section>
+
+        </article></div>

@@ -20,10 +20,10 @@ const NON_CONTENT_SELECTORS = [
   '[id*="consent" i]',
 ].join(',');
 
-function validHttpUrl(value: string | null): string | undefined {
+function validHttpUrl(value: string | null, baseUrl: string): string | undefined {
   if (!value) return undefined;
   try {
-    const url = new URL(value, document.baseURI);
+    const url = new URL(value, baseUrl);
     return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : undefined;
   } catch {
     return undefined;
@@ -43,13 +43,13 @@ function cleanedClone(source: Document, removePageChrome: boolean): Document {
 
 export function captureActiveDocument(source: Document): CapturedPage {
   const capturedAt = new Date().toISOString();
-  const originalUrl = validHttpUrl(source.location.href);
+  const originalUrl = validHttpUrl(source.location.href, source.baseURI);
   if (!originalUrl) throw new Error('Only HTTP(S) pages can be exported.');
 
   const completeClone = cleanedClone(source, false);
   const readabilityClone = cleanedClone(source, true);
   const article = new Readability(readabilityClone, { keepClasses: false }).parse();
-  const canonicalUrl = validHttpUrl(source.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? null);
+  const canonicalUrl = validHttpUrl(source.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? null, source.baseURI);
   const limitations: string[] = [];
 
   if (!article?.content) limitations.push('Focused extraction was unavailable; use complete-page export.');

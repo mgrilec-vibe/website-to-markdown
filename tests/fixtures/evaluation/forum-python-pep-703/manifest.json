@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "forum-python-pep-703",
+  "category": "forum-thread",
+  "tags": [
+    "forum-thread",
+    "v1"
+  ],
+  "publisherDomain": "discuss.python.org",
+  "markupPlatform": "discourse",
+  "expectedFocus": "thread",
+  "provenance": {
+    "originUrl": "https://discuss.python.org/t/pep-703-making-the-global-interpreter-lock-optional-in-cpython/22606",
+    "finalUrl": "https://discuss.python.org/t/pep-703-making-the-global-interpreter-lock-optional/22606",
+    "capturedAt": "2026-07-29T21:52:30.329Z",
+    "documentSha256": "e866bc1d77887d0b9dab96738e214115944d3fc1aba65ee4d969bcfb1550dfa6",
+    "screenshotSha256": "e277b881d9fbe45feb38b33e7724a3ae3ba837351815f625319c40ab8789e2a2",
+    "profile": {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readyState": "load",
+      "screenshotMode": "viewport",
+      "stabilityMs": 250,
+      "navigationTimeoutMs": 20000,
+      "maxRedirects": 5,
+      "maxResponseBytes": 5000000
+    }
+  },
+  "focusEvidence": {
+    "pageTitle": "PEP 703: Making the Global Interpreter Lock Optional - PEPs - Discussions on Python.org",
+    "readabilityTitle": "PEP 703: Making the Global Interpreter Lock Optional - PEPs - Discussions on Python.org",
+    "selectedHeading": "PEP 703: Making the Global Interpreter Lock Optional - PEPs - Discussions on Python.org"
+  },
+  "limitations": [],
+  "sourceReview": {
+    "reviewedAt": "2026-07-29T21:52:31.437Z",
+    "reviewer": "user-authorized corpus policy",
+    "sourceUseApproved": true
+  }
+}
