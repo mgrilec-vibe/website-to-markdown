@@ -12,12 +12,18 @@ import {
 } from './runner';
 import './styles.css';
 
+interface BenchmarkProgress {
+  readonly recorded: number;
+  readonly total: number;
+}
+
 interface BenchmarkAppState {
   capability: CapabilityState | undefined;
   provisioning: readonly BenchmarkProvisioningEvent[];
   suite: BenchmarkSuite | undefined;
   running: BenchmarkRunDefinition | undefined;
   status: BenchmarkRunStatus | undefined;
+  progress: BenchmarkProgress | undefined;
   error: string | undefined;
   busy: boolean;
 }
@@ -54,6 +60,7 @@ export function mountBenchmarkApp(root: HTMLElement): void {
     suite: undefined,
     running: undefined,
     status: undefined,
+    progress: undefined,
     error: undefined,
     busy: false,
   };
@@ -89,6 +96,8 @@ export function mountBenchmarkApp(root: HTMLElement): void {
         </section>
         <section class="benchmark-panel" aria-labelledby="progress-heading">
           <h2 id="progress-heading">Progress</h2>
+          <progress id="run-progress" aria-label="Benchmark progress" value="${state.progress?.recorded ?? 0}" max="${Math.max(state.progress?.total ?? 0, 1)}"></progress>
+          <p id="progress-summary" role="status"></p>
           <p id="run-status" role="status"></p>
           <p id="error" class="benchmark-error"${state.error ? '' : ' hidden'}></p>
         </section>
@@ -96,6 +105,9 @@ export function mountBenchmarkApp(root: HTMLElement): void {
     `;
     root.querySelector<HTMLElement>('#suite-status')!.textContent = suiteText(state.suite);
     root.querySelector<HTMLElement>('#capability-status')!.textContent = capabilityText(state.capability);
+    root.querySelector<HTMLElement>('#progress-summary')!.textContent = state.progress
+      ? `${state.progress.recorded} of ${state.progress.total} run results recorded; ${state.progress.total - state.progress.recorded} remaining.`
+      : 'No benchmark run in progress.';
     root.querySelector<HTMLElement>('#run-status')!.textContent = state.running
       ? `${state.status ?? 'running'}: ${state.running.fixtureId} · ${state.running.mode} · ${state.running.provider} · Detail ${state.running.detail}`
       : state.busy ? 'Preparing benchmark…' : 'Idle';
@@ -141,18 +153,41 @@ export function mountBenchmarkApp(root: HTMLElement): void {
 
     const run = (definitions: readonly BenchmarkRunDefinition[]): void => {
       void (async () => {
-        state = { ...state, busy: true, error: undefined, suite: undefined, running: undefined, status: undefined };
+        state = {
+          ...state,
+          busy: true,
+          error: undefined,
+          suite: undefined,
+          running: undefined,
+          status: undefined,
+          progress: { recorded: 0, total: definitions.length },
+        };
         controller = new AbortController();
         render();
         try {
           const suite = await runBenchmarkSuite(definitions, BENCHMARK_CORPUS, {
             signal: controller.signal,
             onRunState: (definition, status) => {
-              state = { ...state, running: definition, status };
+              const recorded = status === 'completed' || status === 'failed' || status === 'cancelled';
+              state = {
+                ...state,
+                running: definition,
+                status,
+                ...(recorded && state.progress
+                  ? { progress: { ...state.progress, recorded: Math.min(state.progress.total, state.progress.recorded + 1) } }
+                  : {}),
+              };
               render();
             },
           });
-          state = { ...state, suite, busy: false, running: undefined, status: undefined };
+          state = {
+            ...state,
+            suite,
+            busy: false,
+            running: undefined,
+            status: undefined,
+            progress: { recorded: suite.runs.length, total: suite.definitions.length },
+          };
         } catch (error) {
           state = { ...state, busy: false, error: errorMessage(error), running: undefined, status: undefined };
         } finally {

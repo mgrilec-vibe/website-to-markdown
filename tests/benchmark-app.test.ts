@@ -27,6 +27,9 @@ describe('benchmark application', () => {
     expect(root.querySelector('#run-full')?.textContent).toBe('Run full benchmark');
     expect(root.querySelector('#run-diagnostic')?.textContent).toBe('Run diagnostic fixture');
     expect(root.querySelector('#download')?.hasAttribute('disabled')).toBe(true);
+    expect(root.querySelector('#run-progress')?.getAttribute('max')).toBe('1');
+    expect(root.querySelector('#run-progress')?.getAttribute('aria-label')).toBe('Benchmark progress');
+    expect(root.querySelector('#progress-summary')?.textContent).toBe('No benchmark run in progress.');
     expect(root.querySelector('#error')?.hasAttribute('hidden')).toBe(true);
   });
 });

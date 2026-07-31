@@ -58,6 +58,11 @@ body {
   cursor: not-allowed;
 }
 
+#run-progress {
+  width: 100%;
+  height: 1rem;
+}
+
 .benchmark-error {
   color: #b91c1c;
   font-weight: 600;

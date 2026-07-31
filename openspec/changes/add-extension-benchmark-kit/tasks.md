@@ -19,6 +19,7 @@
 - [x] 3.2 Define versioned aggregate-report and per-run metadata schemas covering fixture provenance, matrix completeness, environment, settings, policy version, capability/provisioning history, output metrics/hashes, check outcomes, and diagnostics.
 - [x] 3.3 Create the local ZIP exporter with aggregate report, environment file, fixture evidence, result Markdown, and per-run metadata; support complete and partial-suite archives without transmitting content.
 - [x] 3.4 Add a concise archive README that explains static-fixture provenance, deterministic versus local-AI checks, summary-origin semantics, and how to review results.
+- [x] 3.5 Display recorded, remaining, and total benchmark runs with an accessible progress bar.
 
 ## 4. Assessment cutover and production smoke guidance
 
