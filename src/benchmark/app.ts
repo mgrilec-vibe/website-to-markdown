@@ -5,8 +5,10 @@ import { createBenchmarkArchive, downloadBenchmarkArchive } from './archive';
 import { provisionBenchmarkLocalAi, type BenchmarkProvisioningEvent } from './provisioning';
 import {
   createDefaultBenchmarkMatrix,
+  createQuickBenchmarkMatrix,
   runBenchmarkSuite,
   type BenchmarkRunDefinition,
+  type BenchmarkRunStage,
   type BenchmarkRunStatus,
   type BenchmarkSuite,
 } from './runner';
@@ -17,12 +19,15 @@ interface BenchmarkProgress {
   readonly total: number;
 }
 
+type BenchmarkDisplayStage = BenchmarkRunStage | 'preparing';
+
 interface BenchmarkAppState {
   capability: CapabilityState | undefined;
   provisioning: readonly BenchmarkProvisioningEvent[];
   suite: BenchmarkSuite | undefined;
   running: BenchmarkRunDefinition | undefined;
   status: BenchmarkRunStatus | undefined;
+  stage: BenchmarkDisplayStage | undefined;
   progress: BenchmarkProgress | undefined;
   error: string | undefined;
   busy: boolean;
@@ -45,6 +50,29 @@ function suiteText(suite?: BenchmarkSuite): string {
   return `${completed}/${suite.definitions.length} completed; ${failed} failed; ${cancelled} cancelled.`;
 }
 
+function stageText(stage?: BenchmarkDisplayStage): string {
+  switch (stage) {
+    case 'converting':
+      return 'Converting page structure';
+    case 'checking-capability':
+      return 'Checking Chrome local-AI capability';
+    case 'creating-language-detector':
+      return 'Creating language detector';
+    case 'detecting-language':
+      return 'Detecting page language';
+    case 'creating-summarizer':
+      return 'Creating summarizer';
+    case 'summarizing':
+      return 'Summarizing Markdown';
+    case 'finalizing':
+      return 'Finalizing result';
+    case 'preparing':
+      return 'Preparing benchmark';
+    default:
+      return 'Starting conversion';
+  }
+}
+
 function extensionEnvironment(state: BenchmarkAppState): Record<string, unknown> {
   return {
     extensionVersion: typeof chrome === 'undefined' ? undefined : chrome.runtime.getManifest().version,
@@ -60,6 +88,7 @@ export function mountBenchmarkApp(root: HTMLElement): void {
     suite: undefined,
     running: undefined,
     status: undefined,
+    stage: undefined,
     progress: undefined,
     error: undefined,
     busy: false,
@@ -76,10 +105,11 @@ export function mountBenchmarkApp(root: HTMLElement): void {
         </header>
         <section class="benchmark-panel" aria-labelledby="corpus-heading">
           <h2 id="corpus-heading">Suite</h2>
-          <p>10 fixtures · 2 modes · 13 provider/detail cells · 260 runs</p>
+          <p>Quick: 1 fixture · 2 modes · None, Custom, and Browser · 6 runs</p>
+          <p>Full: 10 fixtures · 2 modes · 13 provider/detail cells · 260 runs</p>
           <p id="suite-status" role="status"></p>
           <div class="benchmark-actions">
-            <button id="run-diagnostic" type="button" ${state.busy ? 'disabled' : ''}>Run diagnostic fixture</button>
+            <button id="run-diagnostic" type="button" ${state.busy ? 'disabled' : ''}>Run quick benchmark</button>
             <button id="run-full" type="button" ${state.busy ? 'disabled' : ''}>Run full benchmark</button>
             <button id="cancel" type="button" ${state.busy ? '' : 'disabled'}>Cancel after current run</button>
             <button id="download" type="button" ${state.suite?.runs.some((run) => run.status === 'completed') ? '' : 'disabled'}>Download benchmark ZIP</button>
@@ -109,8 +139,8 @@ export function mountBenchmarkApp(root: HTMLElement): void {
       ? `${state.progress.recorded} of ${state.progress.total} run results recorded; ${state.progress.total - state.progress.recorded} remaining.`
       : 'No benchmark run in progress.';
     root.querySelector<HTMLElement>('#run-status')!.textContent = state.running
-      ? `${state.status ?? 'running'}: ${state.running.fixtureId} · ${state.running.mode} · ${state.running.provider} · Detail ${state.running.detail}`
-      : state.busy ? 'Preparing benchmark…' : 'Idle';
+      ? `${stageText(state.stage)} — ${state.status ?? 'running'}: ${state.running.fixtureId} · ${state.running.mode} · ${state.running.provider} · Detail ${state.running.detail}`
+      : state.busy ? stageText(state.stage) : 'Idle';
     root.querySelector<HTMLElement>('#error')!.textContent = state.error ?? '';
     const events = root.querySelector<HTMLOListElement>('#provisioning-events')!;
     for (const event of state.provisioning) {
@@ -160,6 +190,7 @@ export function mountBenchmarkApp(root: HTMLElement): void {
           suite: undefined,
           running: undefined,
           status: undefined,
+          stage: 'preparing',
           progress: { recorded: 0, total: definitions.length },
         };
         controller = new AbortController();
@@ -179,6 +210,10 @@ export function mountBenchmarkApp(root: HTMLElement): void {
               };
               render();
             },
+            onStage: (_definition, stage) => {
+              state = { ...state, stage };
+              render();
+            },
           });
           state = {
             ...state,
@@ -186,10 +221,18 @@ export function mountBenchmarkApp(root: HTMLElement): void {
             busy: false,
             running: undefined,
             status: undefined,
+            stage: undefined,
             progress: { recorded: suite.runs.length, total: suite.definitions.length },
           };
         } catch (error) {
-          state = { ...state, busy: false, error: errorMessage(error), running: undefined, status: undefined };
+          state = {
+            ...state,
+            busy: false,
+            error: errorMessage(error),
+            running: undefined,
+            status: undefined,
+            stage: undefined,
+          };
         } finally {
           controller = undefined;
         }
@@ -197,10 +240,7 @@ export function mountBenchmarkApp(root: HTMLElement): void {
       })();
     };
     root.querySelector<HTMLButtonElement>('#run-full')!.addEventListener('click', () => run(createDefaultBenchmarkMatrix(BENCHMARK_CORPUS)));
-    root.querySelector<HTMLButtonElement>('#run-diagnostic')!.addEventListener('click', () => {
-      const fixture = BENCHMARK_CORPUS[0]!;
-      run(createDefaultBenchmarkMatrix([fixture]));
-    });
+    root.querySelector<HTMLButtonElement>('#run-diagnostic')!.addEventListener('click', () => run(createQuickBenchmarkMatrix(BENCHMARK_CORPUS)));
     root.querySelector<HTMLButtonElement>('#cancel')!.addEventListener('click', () => controller?.abort());
     root.querySelector<HTMLButtonElement>('#download')!.addEventListener('click', () => {
       void (async () => {

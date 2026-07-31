@@ -67,7 +67,7 @@ Build the self-contained benchmark extension on a machine with a qualifying Chro
 npm run build:benchmark
 ```
 
-Load `.output/benchmark-mv3` through `chrome://extensions`, open the extension action, then choose **Open benchmark**. The benchmark processes only its bundled approved static fixtures; it does not navigate to their source URLs. Check or provision Chrome local AI explicitly, run either the diagnostic fixture or the complete 260-cell matrix, then download the local evidence ZIP for review.
+Load `.output/benchmark-mv3` through `chrome://extensions`, open the extension action, then choose **Open benchmark**. The benchmark processes only its bundled approved static fixtures; it does not navigate to their source URLs. Check or provision Chrome local AI explicitly, run the six-cell quick benchmark or the complete 260-cell matrix, then download the local evidence ZIP for review.
 
 ## Conversion evaluation
 

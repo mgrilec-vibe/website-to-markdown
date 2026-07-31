@@ -32,6 +32,15 @@ export interface BenchmarkRunDefinition {
 
 export type BenchmarkRunStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 
+export type BenchmarkRunStage =
+  | 'converting'
+  | 'checking-capability'
+  | 'creating-language-detector'
+  | 'detecting-language'
+  | 'creating-summarizer'
+  | 'summarizing'
+  | 'finalizing';
+
 export interface BenchmarkTiming {
   readonly conversionMs: number;
   readonly capabilityMs?: number;
@@ -93,6 +102,7 @@ export interface BenchmarkRunnerOptions {
   readonly clock?: () => string;
   readonly onRunState?: (definition: BenchmarkRunDefinition, status: BenchmarkRunStatus) => void;
   readonly onProgress?: (definition: BenchmarkRunDefinition, progress: FinalExportProgress) => void;
+  readonly onStage?: (definition: BenchmarkRunDefinition, stage: BenchmarkRunStage) => void;
 }
 
 interface MutableTimings {
@@ -149,8 +159,19 @@ async function sha256(value: string): Promise<string> {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-function timingAdapter(adapter: BrowserSummaryAdapter, timings: MutableTimings, now: () => number): BrowserSummaryAdapter {
-  const timed = async <T>(name: keyof MutableTimings, operation: () => Promise<T>): Promise<T> => {
+function timingAdapter(
+  definition: BenchmarkRunDefinition,
+  adapter: BrowserSummaryAdapter,
+  timings: MutableTimings,
+  now: () => number,
+  onStage?: BenchmarkRunnerOptions['onStage'],
+): BrowserSummaryAdapter {
+  const timed = async <T>(
+    stage: BenchmarkRunStage,
+    name: keyof MutableTimings,
+    operation: () => Promise<T>,
+  ): Promise<T> => {
+    onStage?.(definition, stage);
     const started = now();
     try {
       return await operation();
@@ -167,11 +188,11 @@ function timingAdapter(adapter: BrowserSummaryAdapter, timings: MutableTimings, 
 
   return {
     htmlParser: parser,
-    checkCapability: () => timed('capabilityMs', () => adapter.checkCapability()),
-    createLanguageDetector: (options?: LocalAiCreateOptions) => timed('languageDetectorMs', () => adapter.createLanguageDetector(options)),
-    detectEligibleLanguage: (prose, declaredLanguage, detector) => timed('languageDetectionMs', () => adapter.detectEligibleLanguage(prose, declaredLanguage, detector)),
-    createSummarizer: (policy, language, options) => timed('summarizerCreationMs', () => adapter.createSummarizer(policy, language, options)),
-    summarizeBlocks: (session, blocks) => timed('summarizationMs', () => adapter.summarizeBlocks(session, blocks)),
+    checkCapability: () => timed('checking-capability', 'capabilityMs', () => adapter.checkCapability()),
+    createLanguageDetector: (options?: LocalAiCreateOptions) => timed('creating-language-detector', 'languageDetectorMs', () => adapter.createLanguageDetector(options)),
+    detectEligibleLanguage: (prose, declaredLanguage, detector) => timed('detecting-language', 'languageDetectionMs', () => adapter.detectEligibleLanguage(prose, declaredLanguage, detector)),
+    createSummarizer: (policy, language, options) => timed('creating-summarizer', 'summarizerCreationMs', () => adapter.createSummarizer(policy, language, options)),
+    summarizeBlocks: (session, blocks) => timed('summarizing', 'summarizationMs', () => adapter.summarizeBlocks(session, blocks)),
   };
 }
 
@@ -216,6 +237,16 @@ export function createDefaultBenchmarkMatrix(fixtures: readonly BenchmarkCorpusF
   ]));
 }
 
+export function createQuickBenchmarkMatrix(fixtures: readonly BenchmarkCorpusFixture[]): readonly BenchmarkRunDefinition[] {
+  const fixture = fixtures[0];
+  if (!fixture) return [];
+  return BENCHMARK_MODES.flatMap((mode) => [
+    { fixtureId: fixture.manifest.id, mode, provider: 'none' as const, detail: 100 },
+    { fixtureId: fixture.manifest.id, mode, provider: 'custom' as const, detail: 40 },
+    { fixtureId: fixture.manifest.id, mode, provider: 'browser' as const, detail: 40 },
+  ]);
+}
+
 export async function runBenchmarkCell(
   definition: BenchmarkRunDefinition,
   fixture: BenchmarkCorpusFixture,
@@ -227,6 +258,7 @@ export async function runBenchmarkCell(
   const adapter = options.adapter ?? browserBenchmarkAdapter;
 
   try {
+    options.onStage?.(definition, 'converting');
     const conversionStarted = now();
     const conversion = convertCapturedPage(fixture.captured, definition.mode, adapter.htmlParser);
     timings.conversionMs = elapsed(now, conversionStarted);
@@ -236,9 +268,13 @@ export async function runBenchmarkCell(
       definition.mode,
       definition.detail,
       definition.provider,
-      timingAdapter(adapter, timings, now),
-      (progress) => options.onProgress?.(definition, progress),
+      timingAdapter(definition, adapter, timings, now, options.onStage),
+      (progress) => {
+        options.onProgress?.(definition, progress);
+        options.onStage?.(definition, progress === 'converting' ? 'converting' : 'summarizing');
+      },
     );
+    options.onStage?.(definition, 'finalizing');
     return {
       definition,
       fixture,

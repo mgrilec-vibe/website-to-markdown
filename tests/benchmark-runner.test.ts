@@ -5,6 +5,7 @@ import type { CapabilityState, LanguageState } from '../src/export-domain';
 import { BENCHMARK_CORPUS } from '../src/benchmark/corpus';
 import {
   createDefaultBenchmarkMatrix,
+  createQuickBenchmarkMatrix,
   isBrowserModelAttempt,
   runBenchmarkCell,
   runBenchmarkSuite,
@@ -30,6 +31,19 @@ describe('benchmark runner', () => {
     expect(matrix[0]).toEqual({ fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'none', detail: 100 });
     expect(matrix[13]).toEqual({ fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'none', detail: 100 });
     expect(matrix.filter(isBrowserModelAttempt)).toHaveLength(100);
+  });
+
+  it('creates a six-cell quick matrix covering every provider and mode', () => {
+    const matrix = createQuickBenchmarkMatrix(BENCHMARK_CORPUS);
+
+    expect(matrix).toEqual([
+      { fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'none', detail: 100 },
+      { fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'custom', detail: 40 },
+      { fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'browser', detail: 40 },
+      { fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'none', detail: 100 },
+      { fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'custom', detail: 40 },
+      { fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'browser', detail: 40 },
+    ]);
   });
 
   it('compares None against the conversion golden and keeps final Markdown separately', async () => {
@@ -67,5 +81,20 @@ describe('benchmark runner', () => {
     ], BENCHMARK_CORPUS, { adapter: unavailableAdapter, signal: controller.signal });
     expect(cancelled.runs).toMatchObject([{ status: 'cancelled' }]);
     expect(cancelled.selectedMatrixIsComplete).toBe(false);
+  });
+
+  it('reports conversion, capability, and finalization stages', async () => {
+    const fixture = BENCHMARK_CORPUS[0]!;
+    const stages: string[] = [];
+
+    await runBenchmarkCell(
+      { fixtureId: fixture.id, mode: 'complete', provider: 'browser', detail: 40 },
+      fixture,
+      { adapter: unavailableAdapter, onStage: (_definition, stage) => stages.push(stage) },
+    );
+
+    expect(stages[0]).toBe('converting');
+    expect(stages).toContain('checking-capability');
+    expect(stages.at(-1)).toBe('finalizing');
   });
 });

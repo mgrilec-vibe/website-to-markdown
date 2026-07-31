@@ -25,7 +25,7 @@ describe('benchmark application', () => {
     expect(root.textContent).toContain('does not visit or recapture source URLs');
     expect(root.textContent).toContain('260 runs');
     expect(root.querySelector('#run-full')?.textContent).toBe('Run full benchmark');
-    expect(root.querySelector('#run-diagnostic')?.textContent).toBe('Run diagnostic fixture');
+    expect(root.querySelector('#run-diagnostic')?.textContent).toBe('Run quick benchmark');
     expect(root.querySelector('#download')?.hasAttribute('disabled')).toBe(true);
     expect(root.querySelector('#run-progress')?.getAttribute('max')).toBe('1');
     expect(root.querySelector('#run-progress')?.getAttribute('aria-label')).toBe('Benchmark progress');

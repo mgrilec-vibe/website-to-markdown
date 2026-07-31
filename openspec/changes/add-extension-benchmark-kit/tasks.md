@@ -20,6 +20,7 @@
 - [x] 3.3 Create the local ZIP exporter with aggregate report, environment file, fixture evidence, result Markdown, and per-run metadata; support complete and partial-suite archives without transmitting content.
 - [x] 3.4 Add a concise archive README that explains static-fixture provenance, deterministic versus local-AI checks, summary-origin semantics, and how to review results.
 - [x] 3.5 Display recorded, remaining, and total benchmark runs with an accessible progress bar.
+- [x] 3.6 Add a six-cell quick benchmark and expose the current conversion stage.
 
 ## 4. Assessment cutover and production smoke guidance
 
