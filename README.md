@@ -30,6 +30,18 @@ npm run build
 
 The extension converts the current tab immediately using the saved settings. Use the extension action's **Settings** menu to choose focused or complete mode, a summarization provider, Detail, and automatic copy behavior.
 
+## Production popup smoke procedure
+
+Use the production build—not the corpus benchmark—to verify the active-tab boundary:
+
+1. Load `.output/chrome-mv3` as an unpacked extension.
+2. Open an accessible `http:` or `https:` page and make that tab active.
+3. Open the extension action and wait for the single Markdown result.
+4. Confirm the source URL, capture time, requested provider, and actual result origin are displayed.
+5. Copy or download the Markdown and confirm the copied/downloaded UTF-8 bytes match the displayed result.
+
+This smoke exercises `activeTab`, `chrome.scripting`, popup rendering, and export delivery. It does not replace the static-corpus benchmark.
+
 ## Local AI behavior
 
 Browser summarization uses Chrome's built-in local Summarizer API only after you select it and start an export. Chrome may require supported hardware, sufficient storage, or an explicit model download. If Chrome cannot provide a local summary, Website to Markdown completes the export with its deterministic custom extractor and labels the actual result origin.
@@ -46,6 +58,16 @@ npm run zip
 ```
 
 `npm run zip` writes the Chrome release archive to `.output/website-to-markdown-<version>-chrome.zip`.
+
+## Run the static corpus benchmark
+
+Build the self-contained benchmark extension on a machine with a qualifying Chrome profile:
+
+```sh
+npm run build:benchmark
+```
+
+Load `.output/benchmark-mv3` through `chrome://extensions`, open the extension action, then choose **Open benchmark**. The benchmark processes only its bundled approved static fixtures; it does not navigate to their source URLs. Check or provision Chrome local AI explicitly, run either the diagnostic fixture or the complete 260-cell matrix, then download the local evidence ZIP for review.
 
 ## Conversion evaluation
 

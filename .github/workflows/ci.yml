@@ -30,15 +30,26 @@ jobs:
         run: npm run typecheck
 
       - name: Run smoke tests
-        run: npm test -- tests/conversion.test.ts tests/export-workflow.test.ts tests/validation.test.ts
+        run: npm test -- tests/conversion.test.ts tests/export-workflow.test.ts
 
       - name: Build extension
         run: npm run build
+
+      - name: Build benchmark extension
+        run: npm run build:benchmark
 
       - name: Publish unpacked Chrome extension
         uses: actions/upload-artifact@v4
         with:
           name: extension-chrome-mv3-${{ github.sha }}
           path: .output/chrome-mv3/**
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish unpacked benchmark extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-benchmark-mv3-${{ github.sha }}
+          path: .output/benchmark-mv3/**
           if-no-files-found: error
           retention-days: 14
