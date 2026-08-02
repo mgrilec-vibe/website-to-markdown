@@ -35,4 +35,4 @@
 - [x] 5.3 Run the project typecheck, full test suite, production build, production ZIP, and benchmark build; inspect both build outputs for the required isolation.
 - [x] 5.4 Load the benchmark build in a Chrome profile without available local AI; run a representative subset and verify deterministic completion, fallback diagnostics, and a reviewable ZIP.
 - [ ] 5.5 Load the benchmark build in a qualifying Chrome extension context, explicitly provision the local model if required, run the complete 260-cell matrix, and inspect the returned ZIP for all completed result artifacts and local-AI/fallback evidence.
-- [ ] 5.6 Execute and record the separate production popup smoke procedure on an accessible HTTP(S) page.
+- ~~5.6 Execute and record the separate production popup smoke procedure on an accessible HTTP(S) page.~~ **Skipped:** Local extension installation/loading for verification is prohibited on this workstation; see `AGENTS.md`.
