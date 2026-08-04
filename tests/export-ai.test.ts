@@ -6,6 +6,7 @@ import {
   createSummarizer,
   detectEligibleLanguage,
   summarizeBlocks,
+  normalizeSummaryText,
   type BuiltInAiApi,
   type LanguageDetectorSession,
   type SummarizerSession,
@@ -50,7 +51,11 @@ function detectorSession(results: readonly { detectedLanguage: string; confidenc
 }
 
 function summarizerSession(result = '- summary'): SummarizerSession {
-  return { summarize: vi.fn(async () => result) };
+  return {
+    inputQuota: 5_000,
+    measureInputUsage: vi.fn(async (text: string) => text.length),
+    summarize: vi.fn(async () => result),
+  };
 }
 
 describe('local AI capability and adapter contracts', () => {
@@ -179,6 +184,12 @@ describe('local language detection', () => {
   });
 });
 
+describe('summary text normalization', () => {
+  it('keeps readable labels and identifiers while removing Markdown destinations and presentation punctuation', () => {
+    expect(normalizeSummaryText('## Heading\n\n- **Important** [label](https://example.com) `fetch()`')).toBe('Heading\nImportant label fetch()');
+  });
+});
+
 describe('local summary chunking and sessions', () => {
   it('creates chunks only at markdown block boundaries', () => {
     const blocks = [block('block-1', '12345'), block('block-2', '67890'), block('block-3', 'x')];
@@ -189,9 +200,11 @@ describe('local summary chunking and sessions', () => {
     ]);
   });
 
-  it('reduces multiple chunk summaries into one summary of summaries', async () => {
+  it('reduces multiple quota-measured chunk summaries into one summary of summaries', async () => {
     const calls: string[] = [];
     const session: SummarizerSession = {
+      inputQuota: 5_000,
+      measureInputUsage: vi.fn(async (text: string) => text.length),
       summarize: vi.fn(async (text: string) => {
         calls.push(text);
         return `summary-${calls.length}`;
@@ -213,13 +226,38 @@ describe('local summary chunking and sessions', () => {
     expect(calls[3]!).toBe('summary-1\n\nsummary-2\n\nsummary-3');
   });
 
-  it('rejects a block that exceeds local summary capacity', () => {
-    expect(() => chunkSummarizableBlocks([block('oversized', 'x'.repeat(5001))])).toThrow('Block oversized exceeds local summary capacity.');
+  it('passes shared request context to quota measurement and summary generation', async () => {
+    const context = 'Summarize the primary article for a developer audience.';
+    const measureInputUsage = vi.fn(async (text: string) => text.length);
+    const summarize = vi.fn(async () => 'summary');
+    const session: SummarizerSession = { inputQuota: 5_000, measureInputUsage, summarize };
+
+    await summarizeBlocks(session, [block('block-1', 'Primary article text.')], context);
+
+    expect(measureInputUsage).toHaveBeenCalledWith('Primary article text.', { context });
+    expect(summarize).toHaveBeenCalledWith('Primary article text.', { context });
+  });
+
+  it('keeps the complete normalized source in one request when it fits the quota', async () => {
+    const measureInputUsage = vi.fn(async (text: string) => text.length);
+    const summarize = vi.fn(async () => 'summary');
+    const session: SummarizerSession = { inputQuota: 100, measureInputUsage, summarize };
+    const blocks = [block('block-1', 'First section.'), block('block-2', 'Second section.')];
+
+    await expect(summarizeBlocks(session, blocks)).resolves.toMatchObject({ chunkCount: 1, reductionStages: 0 });
+    expect(measureInputUsage).toHaveBeenCalledWith('First section.\n\nSecond section.');
+    expect(summarize).toHaveBeenCalledWith('First section.\n\nSecond section.');
+  });
+
+  it('rejects a block that exceeds an explicit summary capacity', () => {
+    expect(() => chunkSummarizableBlocks([block('oversized', 'x'.repeat(5001))], 5_000)).toThrow('Block oversized exceeds local summary capacity.');
   });
 
   it('propagates a session failure so deterministic fallback remains available to the caller', async () => {
     const deterministicFallback = '# Deterministic export';
     const session: SummarizerSession = {
+      inputQuota: 5_000,
+      measureInputUsage: vi.fn(async (text: string) => text.length),
       summarize: vi.fn(async () => { throw new Error('local model failed'); }),
     };
     let output = deterministicFallback;

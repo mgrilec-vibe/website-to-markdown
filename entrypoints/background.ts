@@ -26,7 +26,7 @@ function capturePageInTab(): CapturedPage {
   removeAlways(complete);
   const focused = document.cloneNode(true) as Document;
   removeAlways(focused);
-  focused.querySelectorAll('nav,aside,form,dialog,[role="dialog"],[aria-modal="true"],[data-testid*="cookie" i],[class*="cookie" i],[id*="cookie" i],[class*="consent" i],[id*="consent" i],[class*="related" i],[class*="newsletter" i]').forEach((node) => node.remove());
+  focused.querySelectorAll('nav,footer,aside,form,dialog,[role="dialog"],[aria-modal="true"],[data-testid*="cookie" i],[class*="cookie" i],[id*="cookie" i],[class*="consent" i],[id*="consent" i],[class*="related" i],[class*="newsletter" i]').forEach((node) => node.remove());
   const focusedRoot = focused.querySelector('article, main, [role="main"]') ?? focused.body;
   const canonicalUrl = validHttpUrl(document.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? null);
   const limitations: string[] = [];

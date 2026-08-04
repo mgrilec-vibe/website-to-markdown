@@ -105,7 +105,7 @@ describe('deterministic compression', () => {
     expect(result.markdown).toContain('detected_language: "unknown"');
   });
 
-  it('tags generated summaries and places their boundaries in source order', () => {
+  it('inserts one neutral generated Summary section after the source title', () => {
     const baseline = deterministicCompression(captured, conversion, 'complete', 15, declaredLanguage);
     const summaries = baseline.summarizableBlocks.map((block, index) => ({
       block,
@@ -115,20 +115,12 @@ describe('deterministic compression', () => {
 
     expect(summaries.length).toBeGreaterThan(1);
     expect(assisted.metadata.compressionMode).toBe('local-ai-assisted');
-    expect(assisted.metadata.generatedSummaryCount).toBe(summaries.length);
+    expect(assisted.metadata.generatedSummaryCount).toBe(1);
     expect(assisted.metadata.summaryChunkCount).toBe(summaries.length);
-    expect((assisted.markdown.match(/Locally generated summary/g) ?? []).length).toBe(summaries.length);
-
-    const expectedEntries = [
-      ...baseline.blocks.map((block) => ({ sourceOrder: block.sourceOrder, markdown: block.markdown.trim() })),
-      ...summaries.map((summary) => ({
-        sourceOrder: summary.block.sourceOrder,
-        markdown: `> **Locally generated summary**\n>\n> ${summary.markdown}`,
-      })),
-    ].sort((left, right) => left.sourceOrder - right.sourceOrder);
-    const positions = expectedEntries.map((entry) => assisted.markdown.indexOf(entry.markdown));
-    expect(positions.every((position) => position >= 0)).toBe(true);
-    expect(positions).toEqual([...positions].sort((left, right) => left - right));
+    expect((assisted.markdown.match(/^## Summary$/gmu) ?? []).length).toBe(1);
+    expect(assisted.markdown).not.toContain('Locally generated summary');
+    expect(assisted.markdown).toContain('Generated replacement 1');
+    expect(assisted.markdown).not.toContain('Generated replacement 2');
     expect(assisted.markdown).toContain('compression_mode: local-ai-assisted');
   });
 

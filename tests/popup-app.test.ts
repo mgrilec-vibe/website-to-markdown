@@ -6,7 +6,6 @@ import type { CapturedPage } from '../src/export-domain';
 import type { FinalExport } from '../src/export-workflow';
 
 const preferences: ExportPreferences = {
-  mode: 'focused',
   provider: 'browser',
   detail: 75,
   autoCopy: true,

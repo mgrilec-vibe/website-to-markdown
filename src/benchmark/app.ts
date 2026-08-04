@@ -43,11 +43,11 @@ function capabilityText(capability?: CapabilityState): string {
 }
 
 function suiteText(suite?: BenchmarkSuite): string {
-  if (!suite) return 'No benchmark run has completed.';
+  if (!suite) return 'No focused benchmark run has completed.';
   const completed = suite.runs.filter((run) => run.status === 'completed').length;
   const failed = suite.runs.filter((run) => run.status === 'failed').length;
   const cancelled = suite.runs.filter((run) => run.status === 'cancelled').length;
-  return `${completed}/${suite.definitions.length} completed; ${failed} failed; ${cancelled} cancelled.`;
+  return `${completed}/${suite.definitions.length} focused runs completed; ${failed} failed; ${cancelled} cancelled.`;
 }
 
 function stageText(stage?: BenchmarkDisplayStage): string {
@@ -101,16 +101,16 @@ export function mountBenchmarkApp(root: HTMLElement): void {
         <header>
           <p class="eyebrow">Website to Markdown</p>
           <h1>Corpus benchmark</h1>
-          <p>Runs the bundled approved static corpus locally in this extension. It does not visit or recapture source URLs.</p>
+          <p>Runs the bundled approved static corpus locally in this extension. It does not visit or recapture source URLs. All user-facing cells use focused page content.</p>
         </header>
         <section class="benchmark-panel" aria-labelledby="corpus-heading">
           <h2 id="corpus-heading">Suite</h2>
-          <p>Quick: 1 fixture · 2 modes · None, Custom, and Browser · 6 runs</p>
-          <p>Full: 10 fixtures · 2 modes · 13 provider/detail cells · 260 runs</p>
+          <p>Quick: 1 fixture · focused mode · None@100, Custom@40, Browser@40 · 3 runs</p>
+          <p>Full: 10 fixtures · focused mode · 13 provider/detail cells · 130 runs</p>
           <p id="suite-status" role="status"></p>
           <div class="benchmark-actions">
-            <button id="run-diagnostic" type="button" ${state.busy ? 'disabled' : ''}>Run quick benchmark</button>
-            <button id="run-full" type="button" ${state.busy ? 'disabled' : ''}>Run full benchmark</button>
+            <button id="run-diagnostic" type="button" ${state.busy ? 'disabled' : ''}>Run focused quick benchmark</button>
+            <button id="run-full" type="button" ${state.busy ? 'disabled' : ''}>Run focused full benchmark</button>
             <button id="cancel" type="button" ${state.busy ? '' : 'disabled'}>Cancel after current run</button>
             <button id="download" type="button" ${state.suite?.runs.some((run) => run.status === 'completed') ? '' : 'disabled'}>Download benchmark ZIP</button>
           </div>
@@ -126,7 +126,7 @@ export function mountBenchmarkApp(root: HTMLElement): void {
         </section>
         <section class="benchmark-panel" aria-labelledby="progress-heading">
           <h2 id="progress-heading">Progress</h2>
-          <progress id="run-progress" aria-label="Benchmark progress" value="${state.progress?.recorded ?? 0}" max="${Math.max(state.progress?.total ?? 0, 1)}"></progress>
+          <progress id="run-progress" aria-label="Focused benchmark progress" value="${state.progress?.recorded ?? 0}" max="${Math.max(state.progress?.total ?? 0, 1)}"></progress>
           <p id="progress-summary" role="status"></p>
           <p id="run-status" role="status"></p>
           <p id="error" class="benchmark-error"${state.error ? '' : ' hidden'}></p>
@@ -136,8 +136,8 @@ export function mountBenchmarkApp(root: HTMLElement): void {
     root.querySelector<HTMLElement>('#suite-status')!.textContent = suiteText(state.suite);
     root.querySelector<HTMLElement>('#capability-status')!.textContent = capabilityText(state.capability);
     root.querySelector<HTMLElement>('#progress-summary')!.textContent = state.progress
-      ? `${state.progress.recorded} of ${state.progress.total} run results recorded; ${state.progress.total - state.progress.recorded} remaining.`
-      : 'No benchmark run in progress.';
+      ? `${state.progress.recorded} of ${state.progress.total} focused run results recorded; ${state.progress.total - state.progress.recorded} remaining.`
+      : 'No focused benchmark run in progress.';
     root.querySelector<HTMLElement>('#run-status')!.textContent = state.running
       ? `${stageText(state.stage)} — ${state.status ?? 'running'}: ${state.running.fixtureId} · ${state.running.mode} · ${state.running.provider} · Detail ${state.running.detail}`
       : state.busy ? stageText(state.stage) : 'Idle';

@@ -20,7 +20,7 @@ import type { BenchmarkCorpusFixture } from './corpus';
 
 export const BENCHMARK_MATRIX_VERSION = 1 as const;
 export const BENCHMARK_DETAIL_VALUES = [0, 15, 40, 65, 85, 100] as const;
-const BENCHMARK_MODES = ['complete', 'focused'] as const;
+const BENCHMARK_MODE = 'focused' as const;
 const encoder = new TextEncoder();
 
 export interface BenchmarkRunDefinition {
@@ -192,7 +192,7 @@ function timingAdapter(
     createLanguageDetector: (options?: LocalAiCreateOptions) => timed('creating-language-detector', 'languageDetectorMs', () => adapter.createLanguageDetector(options)),
     detectEligibleLanguage: (prose, declaredLanguage, detector) => timed('detecting-language', 'languageDetectionMs', () => adapter.detectEligibleLanguage(prose, declaredLanguage, detector)),
     createSummarizer: (policy, language, options) => timed('creating-summarizer', 'summarizerCreationMs', () => adapter.createSummarizer(policy, language, options)),
-    summarizeBlocks: (session, blocks) => timed('summarizing', 'summarizationMs', () => adapter.summarizeBlocks(session, blocks)),
+    summarizeBlocks: (session, blocks, context) => timed('summarizing', 'summarizationMs', () => adapter.summarizeBlocks(session, blocks, context)),
   };
 }
 
@@ -230,21 +230,21 @@ function checksFor(
 }
 
 export function createDefaultBenchmarkMatrix(fixtures: readonly BenchmarkCorpusFixture[]): readonly BenchmarkRunDefinition[] {
-  return fixtures.flatMap((fixture) => BENCHMARK_MODES.flatMap((mode) => [
-    { fixtureId: fixture.manifest.id, mode, provider: 'none' as const, detail: 100 },
-    ...BENCHMARK_DETAIL_VALUES.map((detail) => ({ fixtureId: fixture.manifest.id, mode, provider: 'custom' as const, detail })),
-    ...BENCHMARK_DETAIL_VALUES.map((detail) => ({ fixtureId: fixture.manifest.id, mode, provider: 'browser' as const, detail })),
-  ]));
+  return fixtures.flatMap((fixture) => [
+    { fixtureId: fixture.manifest.id, mode: BENCHMARK_MODE, provider: 'none' as const, detail: 100 },
+    ...BENCHMARK_DETAIL_VALUES.map((detail) => ({ fixtureId: fixture.manifest.id, mode: BENCHMARK_MODE, provider: 'custom' as const, detail })),
+    ...BENCHMARK_DETAIL_VALUES.map((detail) => ({ fixtureId: fixture.manifest.id, mode: BENCHMARK_MODE, provider: 'browser' as const, detail })),
+  ]);
 }
 
 export function createQuickBenchmarkMatrix(fixtures: readonly BenchmarkCorpusFixture[]): readonly BenchmarkRunDefinition[] {
   const fixture = fixtures[0];
   if (!fixture) return [];
-  return BENCHMARK_MODES.flatMap((mode) => [
-    { fixtureId: fixture.manifest.id, mode, provider: 'none' as const, detail: 100 },
-    { fixtureId: fixture.manifest.id, mode, provider: 'custom' as const, detail: 40 },
-    { fixtureId: fixture.manifest.id, mode, provider: 'browser' as const, detail: 40 },
-  ]);
+  return [
+    { fixtureId: fixture.manifest.id, mode: BENCHMARK_MODE, provider: 'none' as const, detail: 100 },
+    { fixtureId: fixture.manifest.id, mode: BENCHMARK_MODE, provider: 'custom' as const, detail: 40 },
+    { fixtureId: fixture.manifest.id, mode: BENCHMARK_MODE, provider: 'browser' as const, detail: 40 },
+  ];
 }
 
 export async function runBenchmarkCell(

@@ -5,11 +5,11 @@ A local-first Chrome extension that converts the active tab into reviewable Mark
 ## Features
 
 - Capture the active `http:` or `https:` page with source title, URL, and capture time.
-- Export either focused article content or the complete page.
+- Export the focused article content from the active page.
 - Choose **None**, **Custom extractive**, or **Browser local AI** summarization. Browser local AI falls back to the deterministic custom extractor when unavailable.
 - Set a Detail level from 0–100 for summarized exports. Detail 100 preserves eligible prose without generating a summary.
 - Review one sanitized Markdown preview, then copy or download the exact Markdown result.
-- Save export mode, summarization provider, Detail level, and automatic-copy preference in extension settings.
+- Save the summarization provider, Detail level, and automatic-copy preference in extension settings.
 
 Protected Markdown structures—source provenance, headings, link destinations, code, tables, quotations, and conversion notices—remain verbatim in summarized exports. Canvas content, protected or cross-origin frames, and inaccessible browser pages may not be represented completely.
 
@@ -28,7 +28,7 @@ npm run build
 4. Choose `.output/chrome-mv3`.
 5. Open **Website to Markdown** from the Chrome toolbar.
 
-The extension converts the current tab immediately using the saved settings. Use the extension action's **Settings** menu to choose focused or complete mode, a summarization provider, Detail, and automatic copy behavior.
+The extension converts the current tab immediately using the saved settings. Use the extension action's **Settings** menu to choose a summarization provider, Detail, and automatic copy behavior.
 
 ## Production popup smoke procedure
 
@@ -67,7 +67,7 @@ Build the self-contained benchmark extension on a machine with a qualifying Chro
 npm run build:benchmark
 ```
 
-Load `.output/benchmark-mv3` through `chrome://extensions`, open the extension action, then choose **Open benchmark**. The benchmark processes only its bundled approved static fixtures; it does not navigate to their source URLs. Check or provision Chrome local AI explicitly, run the six-cell quick benchmark or the complete 260-cell matrix, then download the local evidence ZIP for review.
+Load `.output/benchmark-mv3` through `chrome://extensions`, open the extension action, then choose **Open benchmark**. The benchmark processes only its bundled approved static fixtures; it does not navigate to their source URLs. Check or provision Chrome local AI explicitly, run the three-cell quick benchmark or the full 130-cell focused matrix, then download the local evidence ZIP for review.
 
 ## Conversion evaluation
 

@@ -21,7 +21,12 @@ describe('benchmark local-AI provisioning', () => {
       },
       createSummarizer: async (_policy, _language, options) => {
         options?.onProgress?.(1);
-        return { summarize: async () => '', destroy: () => undefined };
+        return {
+          inputQuota: 5_000,
+          measureInputUsage: async (text: string) => text.length,
+          summarize: async () => '',
+          destroy: () => undefined,
+        };
       },
     };
 

@@ -17,7 +17,7 @@ void loadExportPreferences().then((preferences) => {
     deriveReadabilityFocus: (captured) => deriveReadabilityFocus(captured, browserHtmlParser),
     createFinalExport: (captured, selectedPreferences, onProgress) => createFinalExport(
       captured,
-      selectedPreferences.mode,
+      'focused',
       selectedPreferences.detail,
       selectedPreferences.provider,
       undefined,
