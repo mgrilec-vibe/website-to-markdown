@@ -24,22 +24,21 @@ const unavailableAdapter: BrowserSummaryAdapter = {
 };
 
 describe('benchmark runner', () => {
-  it('creates the stable 260-cell default matrix', () => {
+  it('creates the stable 130-cell focused default matrix', () => {
     const matrix = createDefaultBenchmarkMatrix(BENCHMARK_CORPUS);
 
-    expect(matrix).toHaveLength(260);
-    expect(matrix[0]).toEqual({ fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'none', detail: 100 });
-    expect(matrix[13]).toEqual({ fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'none', detail: 100 });
-    expect(matrix.filter(isBrowserModelAttempt)).toHaveLength(100);
+    expect(matrix).toHaveLength(130);
+    expect(matrix[0]).toEqual({ fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'none', detail: 100 });
+    expect(matrix[12]).toEqual({ fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'browser', detail: 100 });
+    expect(matrix[13]).toEqual({ fixtureId: 'boundary-threejs-webgl', mode: 'focused', provider: 'none', detail: 100 });
+    expect(matrix.every((definition) => definition.mode === 'focused')).toBe(true);
+    expect(matrix.filter(isBrowserModelAttempt)).toHaveLength(50);
   });
 
-  it('creates a six-cell quick matrix covering every provider and mode', () => {
+  it('creates a three-cell focused quick matrix', () => {
     const matrix = createQuickBenchmarkMatrix(BENCHMARK_CORPUS);
 
     expect(matrix).toEqual([
-      { fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'none', detail: 100 },
-      { fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'custom', detail: 40 },
-      { fixtureId: 'api-reference-mdn-fetch', mode: 'complete', provider: 'browser', detail: 40 },
       { fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'none', detail: 100 },
       { fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'custom', detail: 40 },
       { fixtureId: 'api-reference-mdn-fetch', mode: 'focused', provider: 'browser', detail: 40 },

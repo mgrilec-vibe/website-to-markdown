@@ -1,7 +1,7 @@
 import TurndownService from 'turndown';
 
 const FOCUS_NOISE = [
-  'nav', 'aside', 'form', 'dialog', '[role="dialog"]', '[aria-modal="true"]',
+  'nav', 'footer', 'aside', 'form', 'dialog', '[role="dialog"]', '[aria-modal="true"]',
   '[data-testid*="cookie" i]', '[class*="cookie" i]', '[id*="cookie" i]',
   '[class*="consent" i]', '[id*="consent" i]', '[class*="related" i]', '[class*="newsletter" i]',
 ].join(',');
