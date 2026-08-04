@@ -4,6 +4,7 @@ import {
   loadExportPreferences,
   normalizeExportPreferences,
   saveExportPreferences,
+  type ExportPreferences,
 } from '../src/export-preferences';
 
 const storage = new Map<string, unknown>();
@@ -30,19 +31,21 @@ describe('export preferences', () => {
     });
     expect(normalizeExportPreferences(null)).toEqual(DEFAULT_EXPORT_PREFERENCES);
     expect(normalizeExportPreferences({ mode: 'complete', provider: 'browser', detail: 74.6, autoCopy: false })).toEqual({
-      mode: 'complete',
       provider: 'browser',
       detail: 75,
       autoCopy: false,
     });
+    expect(normalizeExportPreferences({ mode: 'focused', provider: 'none', detail: 75, autoCopy: true })).toEqual(DEFAULT_EXPORT_PREFERENCES);
   });
+  it('normalizes legacy mode values when loading and saving', async () => {
+    storage.set('exportPreferences', { mode: 'complete', provider: 'custom', detail: 42, autoCopy: false });
+    await expect(loadExportPreferences()).resolves.toEqual({ provider: 'custom', detail: 42, autoCopy: false });
 
-  it('persists preferences in local storage separately from session records', async () => {
-    await saveExportPreferences({ mode: 'complete', provider: 'custom', detail: 42, autoCopy: false });
+    await saveExportPreferences({ mode: 'complete', provider: 'custom', detail: 42, autoCopy: false } as unknown as ExportPreferences);
     expect(local.set).toHaveBeenCalledWith({
-      exportPreferences: { mode: 'complete', provider: 'custom', detail: 42, autoCopy: false },
+      exportPreferences: { provider: 'custom', detail: 42, autoCopy: false },
     });
-    await expect(loadExportPreferences()).resolves.toEqual({ mode: 'complete', provider: 'custom', detail: 42, autoCopy: false });
+    await expect(loadExportPreferences()).resolves.toEqual({ provider: 'custom', detail: 42, autoCopy: false });
     expect(local.get).toHaveBeenCalledWith('exportPreferences');
   });
 });

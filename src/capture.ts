@@ -11,6 +11,7 @@ const NON_CONTENT_SELECTORS = [
   '[role="dialog"]',
   '[aria-modal="true"]',
   'nav',
+  'footer',
   'aside',
   'form',
   '[data-testid*="cookie" i]',

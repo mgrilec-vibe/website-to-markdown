@@ -7,7 +7,6 @@ import type {
   ModelAvailability,
 } from './export-domain';
 
-export const MAX_SUMMARY_CHARS = 5_000;
 const SUPPORTED_LANGUAGES: Readonly<Record<string, true>> = { en: true, es: true, ja: true, de: true, fr: true };
 
 type ChromeAvailability = 'available' | 'downloadable' | 'downloading' | 'unavailable';
@@ -23,6 +22,8 @@ export interface LanguageDetectorSession {
 }
 
 export interface SummarizerSession {
+  readonly inputQuota: number;
+  measureInputUsage(text: string, options?: { readonly context?: string }): Promise<number>;
   summarize(text: string, options?: { readonly context?: string }): Promise<string>;
   destroy?(): void;
 }
@@ -42,6 +43,7 @@ export interface BuiltInAiApi {
       readonly expectedInputLanguages: readonly string[];
       readonly expectedContextLanguages: readonly string[];
       readonly outputLanguage: string;
+      readonly sharedContext?: string;
       readonly monitor?: (monitor: DownloadMonitor) => void;
       readonly signal?: AbortSignal;
     }): Promise<SummarizerSession>;
@@ -78,6 +80,7 @@ export interface LocalAiCreateOptions {
   readonly api?: BuiltInAiApi;
   readonly signal?: AbortSignal;
   readonly onProgress?: (value: number) => void;
+  readonly sharedContext?: string;
 }
 
 export async function createLanguageDetector(options: LocalAiCreateOptions = {}): Promise<LanguageDetectorSession> {
@@ -147,12 +150,37 @@ export async function createSummarizer(policy: DetailPolicy, language: LanguageS
     expectedInputLanguages: [language.primaryLanguage],
     expectedContextLanguages: [language.primaryLanguage],
     outputLanguage: language.primaryLanguage,
+    ...(options.sharedContext ? { sharedContext: options.sharedContext } : {}),
     monitor: downloadMonitor(options.onProgress),
     ...(options.signal ? { signal: options.signal } : {}),
   });
 }
 
-export function chunkSummarizableBlocks(blocks: readonly MarkdownBlock[], maxChars = MAX_SUMMARY_CHARS): readonly MarkdownBlock[][] {
+export function normalizeSummaryText(markdown: string): string {
+  return markdown
+    .split('\n')
+    .filter((line) => !/^\s*\|.+\|\s*$/u.test(line))
+    .map((line) => line
+      .replace(/^\s*#{1,6}\s+/u, '')
+      .replace(/^\s*(?:[-*+]|\d+\.)\s+/u, '')
+      .replace(/^\s*>\s?/u, '')
+      .replace(/!\[([^\]]*)\]\([^)]*\)/gu, '$1')
+      .replace(/\[([^\]]+)\]\([^)]*\)/gu, '$1')
+      .replace(/`([^`]+)`/gu, '$1')
+      .replace(/\*\*([^*]+)\*\*/gu, '$1')
+      .replace(/__([^_]+)__/gu, '$1')
+      .replace(/~~([^~]+)~~/gu, '$1')
+      .replace(/(?<!\w)\*([^*\n]+)\*(?!\w)/gu, '$1')
+      .replace(/(?<!\w)_([^_\n]+)_(?!\w)/gu, '$1')
+      .trim())
+    .filter(Boolean)
+    .join('\n')
+    .replace(/[ \t]+/gu, ' ')
+    .replace(/\n{3,}/gu, '\n\n')
+    .trim();
+}
+
+export function chunkSummarizableBlocks(blocks: readonly MarkdownBlock[], maxChars = Number.MAX_SAFE_INTEGER): readonly MarkdownBlock[][] {
   const chunks: MarkdownBlock[][] = [];
   let current: MarkdownBlock[] = [];
   let size = 0;
@@ -181,35 +209,94 @@ export interface LocalSummaryOutput {
   readonly reductionStages: number;
 }
 
-export async function summarizeBlocks(session: SummarizerSession, blocks: readonly MarkdownBlock[]): Promise<LocalSummaryOutput> {
-  const chunks = chunkSummarizableBlocks(blocks);
+function measureInputUsage(session: SummarizerSession, text: string, context?: string): Promise<number> {
+  return context === undefined ? session.measureInputUsage(text) : session.measureInputUsage(text, { context });
+}
+
+function summarizeInput(session: SummarizerSession, text: string, context?: string): Promise<string> {
+  return context === undefined ? session.summarize(text) : session.summarize(text, { context });
+}
+
+async function measuredChunks(
+  session: SummarizerSession,
+  blocks: readonly MarkdownBlock[],
+  context?: string,
+): Promise<readonly MarkdownBlock[][]> {
+  if (!Number.isFinite(session.inputQuota) || session.inputQuota <= 0) throw new Error('Chrome Summarizer reported no usable input quota.');
+  if (blocks.length === 0) return [];
+  const fullInput = blocks.map((block) => block.markdown).join('\n\n');
+  const fullUsage = await measureInputUsage(session, fullInput, context);
+  if (fullUsage <= session.inputQuota) return [blocks.slice() as MarkdownBlock[]];
+  const chunks: MarkdownBlock[][] = [];
+  let current: MarkdownBlock[] = [];
+  for (const block of blocks) {
+    const candidate = [...current, block];
+    const input = candidate.map((item) => item.markdown).join('\n\n');
+    const usage = await measureInputUsage(session, input, context);
+    if (usage > session.inputQuota) {
+      if (current.length === 0) throw new Error(`Block ${block.id} exceeds local summary capacity.`);
+      chunks.push(current);
+      current = [block];
+      const singleUsage = await measureInputUsage(session, block.markdown, context);
+      if (singleUsage > session.inputQuota) throw new Error(`Block ${block.id} exceeds local summary capacity.`);
+    } else {
+      current = candidate;
+    }
+  }
+  if (current.length > 0) chunks.push(current);
+  return chunks;
+}
+
+async function measuredSummaryGroups(
+  session: SummarizerSession,
+  summaries: readonly GeneratedSummary[],
+  context?: string,
+): Promise<readonly GeneratedSummary[][]> {
+  if (!Number.isFinite(session.inputQuota) || session.inputQuota <= 0) throw new Error('Chrome Summarizer reported no usable input quota.');
+  const groups: GeneratedSummary[][] = [];
+  let current: GeneratedSummary[] = [];
+  for (const summary of summaries) {
+    const candidate = [...current, summary];
+    const input = candidate.map((item) => item.markdown.trim()).filter(Boolean).join('\n\n');
+    const usage = await measureInputUsage(session, input, context);
+    if (usage > session.inputQuota) {
+      if (current.length === 0) throw new Error('A local summary exceeds the bounded reduction capacity.');
+      groups.push(current);
+      current = [summary];
+      const singleUsage = await measureInputUsage(session, summary.markdown, context);
+      if (singleUsage > session.inputQuota) throw new Error('A local summary exceeds the bounded reduction capacity.');
+    } else {
+      current = candidate;
+    }
+  }
+  if (current.length > 0) groups.push(current);
+  return groups;
+}
+
+export async function summarizeBlocks(
+  session: SummarizerSession,
+  blocks: readonly MarkdownBlock[],
+  context?: string,
+): Promise<LocalSummaryOutput> {
+  const chunks = await measuredChunks(session, blocks, context);
   let summaries: GeneratedSummary[] = [];
   for (const chunk of chunks) {
     const anchor = chunk[chunk.length - 1];
     if (!anchor) throw new Error('Summary chunk had no source blocks.');
-    summaries.push({ block: anchor, markdown: await session.summarize(chunk.map((block) => block.markdown).join('\n\n')) });
+    const text = chunk.map((block) => block.markdown).join('\n\n');
+    summaries.push({ block: anchor, markdown: await summarizeInput(session, text, context) });
   }
   let reductionStages = 0;
   while (summaries.length > 1) {
     if (reductionStages === 3) throw new Error('Local summary requires more reduction stages than this export permits.');
-    const groups: GeneratedSummary[][] = [];
-    let group: GeneratedSummary[] = [];
-    let groupSize = 0;
-    for (const summary of summaries) {
-      if (summary.markdown.length > MAX_SUMMARY_CHARS) throw new Error('A local summary exceeds the bounded reduction capacity.');
-      if (group.length > 0 && groupSize + summary.markdown.length > MAX_SUMMARY_CHARS) {
-        groups.push(group);
-        group = [];
-        groupSize = 0;
-      }
-      group.push(summary);
-      groupSize += summary.markdown.length;
-    }
-    if (group.length > 0) groups.push(group);
+    const groups = await measuredSummaryGroups(session, summaries, context);
     summaries = await Promise.all(groups.map(async (current) => {
       const anchor = current[current.length - 1];
       if (!anchor) throw new Error('Summary reduction group had no source block.');
-      return { block: anchor.block, markdown: await session.summarize(current.map((summary) => summary.markdown).join('\n\n')) };
+      return {
+        block: anchor.block,
+        markdown: await summarizeInput(session, current.map((summary) => summary.markdown.trim()).filter(Boolean).join('\n\n'), context),
+      };
     }));
     reductionStages += 1;
   }

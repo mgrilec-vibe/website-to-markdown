@@ -1,14 +1,12 @@
-import type { ExportMode, SummarizationProvider } from './export-domain';
+import type { SummarizationProvider } from './export-domain';
 
 export interface ExportPreferences {
-  readonly mode: ExportMode;
   readonly provider: SummarizationProvider;
   readonly detail: number;
   readonly autoCopy: boolean;
 }
 
 export const DEFAULT_EXPORT_PREFERENCES: ExportPreferences = {
-  mode: 'focused',
   provider: 'none',
   detail: 75,
   autoCopy: true,
@@ -27,15 +25,12 @@ function normalizeDetail(value: unknown): number {
 
 export function normalizeExportPreferences(value: unknown): ExportPreferences {
   const source = isRecord(value) ? value : {};
-  const mode: ExportMode = source.mode === 'complete' || source.mode === 'focused'
-    ? source.mode
-    : DEFAULT_EXPORT_PREFERENCES.mode;
   const provider: SummarizationProvider = source.provider === 'none' || source.provider === 'browser' || source.provider === 'custom'
     ? source.provider
     : DEFAULT_EXPORT_PREFERENCES.provider;
   const detail = normalizeDetail(source.detail);
   const autoCopy = typeof source.autoCopy === 'boolean' ? source.autoCopy : DEFAULT_EXPORT_PREFERENCES.autoCopy;
-  return { mode, provider, detail, autoCopy };
+  return { provider, detail, autoCopy };
 }
 
 export async function loadExportPreferences(): Promise<ExportPreferences> {

@@ -265,9 +265,6 @@ export function extractiveSummaries(blocks: readonly MarkdownBlock[], detail: nu
   });
 }
 
-function summaryLabel(origin: Exclude<SummaryOrigin, 'none'>): string {
-  return origin === 'local-ai' ? 'Locally generated summary' : 'Custom extractive summary';
-}
 
 export function withSummaries(
   result: CompressionResult,
@@ -275,15 +272,28 @@ export function withSummaries(
   origin: Exclude<SummaryOrigin, 'none'>,
   summaryChunkCount = 0,
 ): CompressionResult {
-  const generated = summaries.filter((summary) => summary.markdown.trim());
-  const ordered = [
-    ...result.blocks.filter((block) => block.kind !== 'provenance').map((block) => ({ sourceOrder: block.sourceOrder, markdown: block.markdown.trim() })),
-    ...generated.map((summary) => ({
-      sourceOrder: summary.block.sourceOrder,
-      markdown: `> **${summaryLabel(origin)}**\n>\n> ${summary.markdown.trim().replace(/\n/g, '\n> ')}`,
-    })),
-  ].sort((left, right) => left.sourceOrder - right.sourceOrder);
-  const body = ordered.map((entry) => entry.markdown).filter(Boolean).join('\n\n');
+  const generatedCandidates = summaries.filter((summary) => summary.markdown.trim());
+  const generated = origin === 'local-ai' ? generatedCandidates.slice(0, 1) : generatedCandidates;
+  const bodyBlocks = result.blocks.filter((block) => block.kind !== 'provenance');
+  let body: string;
+  if (origin === 'local-ai') {
+    const entries = bodyBlocks.map((block) => block.markdown.trim()).filter(Boolean);
+    if (generated[0]) {
+      const summary = `## Summary\n\n${generated[0].markdown.trim()}`;
+      const titleIndex = bodyBlocks.findIndex((block) => /^#\s/u.test(block.markdown.trim()));
+      entries.splice(titleIndex < 0 ? 0 : titleIndex + 1, 0, summary);
+    }
+    body = entries.join('\n\n');
+  } else {
+    const ordered = [
+      ...bodyBlocks.map((block) => ({ sourceOrder: block.sourceOrder, markdown: block.markdown.trim() })),
+      ...generated.map((summary) => ({
+        sourceOrder: summary.block.sourceOrder,
+        markdown: `> **Custom extractive summary**\n>\n> ${summary.markdown.trim().replace(/\n/g, '\n> ')}`,
+      })),
+    ].sort((left, right) => left.sourceOrder - right.sourceOrder);
+    body = ordered.map((entry) => entry.markdown).filter(Boolean).join('\n\n');
+  }
   let metadata: ExportMetadata = {
     ...result.metadata,
     compressionMode: origin === 'local-ai' ? 'local-ai-assisted' : 'custom-extractive',

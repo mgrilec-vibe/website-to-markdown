@@ -3,7 +3,7 @@ import {
   saveExportPreferences,
   type ExportPreferences,
 } from './export-preferences';
-import type { ExportMode, SummarizationProvider } from './export-domain';
+import type { SummarizationProvider } from './export-domain';
 
 export interface SettingsDependencies {
   readonly load: () => Promise<ExportPreferences>;
@@ -25,12 +25,6 @@ export function mountSettingsApp(root: HTMLElement, dependencies: SettingsDepend
           <p>Quick export uses these local defaults. Browser summarization uses Chrome local AI when available and otherwise falls back to deterministic extraction.</p>
         </header>
         <form id="settings-form" class="card settings-form">
-          <label class="field">Export mode
-            <select id="mode" name="mode">
-              <option value="focused" ${preferences.mode === 'focused' ? 'selected' : ''}>Focused content</option>
-              <option value="complete" ${preferences.mode === 'complete' ? 'selected' : ''}>Complete page</option>
-            </select>
-          </label>
           <label class="field">Summarization
             <select id="provider" name="provider">
               <option value="none" ${preferences.provider === 'none' ? 'selected' : ''}>None</option>
@@ -53,7 +47,6 @@ export function mountSettingsApp(root: HTMLElement, dependencies: SettingsDepend
     root.querySelector<HTMLFormElement>('#settings-form')!.addEventListener('submit', async (event) => {
       event.preventDefault();
       const updated: ExportPreferences = {
-        mode: root.querySelector<HTMLSelectElement>('#mode')!.value as ExportMode,
         provider: root.querySelector<HTMLSelectElement>('#provider')!.value as SummarizationProvider,
         detail: Number(detail.value),
         autoCopy: root.querySelector<HTMLInputElement>('#auto-copy')!.checked,

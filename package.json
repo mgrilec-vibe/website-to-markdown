@@ -7,6 +7,7 @@
     "dev": "wxt",
     "dev:chrome": "wxt --browser chrome",
     "build": "wxt build --browser chrome",
+    "build:benchmark": "wxt build --config wxt.config.benchmark.ts --browser chrome",
     "zip": "wxt zip --browser chrome",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -18,6 +19,7 @@
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
     "dompurify": "^3.4.12",
+    "fflate": "^0.8.3",
     "marked": "^18.0.7",
     "turndown": "^7.2.4"
   },

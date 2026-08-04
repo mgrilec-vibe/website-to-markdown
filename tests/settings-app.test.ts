@@ -4,7 +4,6 @@ import { mountSettingsApp } from '../src/settings-app';
 import type { ExportPreferences } from '../src/export-preferences';
 
 const preferences: ExportPreferences = {
-  mode: 'focused',
   provider: 'none',
   detail: 75,
   autoCopy: true,
@@ -18,14 +17,13 @@ describe('settings surface', () => {
     mountSettingsApp(root, { load: async () => preferences, save });
 
     await vi.waitFor(() => expect(root.textContent).toContain('falls back to deterministic extraction'));
-    Object.defineProperty(root.querySelector<HTMLSelectElement>('#mode')!, 'value', { configurable: true, value: 'complete' });
+    expect(root.querySelector('#mode')).toBeNull();
     Object.defineProperty(root.querySelector<HTMLSelectElement>('#provider')!, 'value', { configurable: true, value: 'browser' });
     Object.defineProperty(root.querySelector<HTMLInputElement>('#detail')!, 'value', { configurable: true, value: '42' });
     Object.defineProperty(root.querySelector<HTMLInputElement>('#auto-copy')!, 'checked', { configurable: true, value: false });
     root.querySelector<HTMLFormElement>('#settings-form')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
 
     await vi.waitFor(() => expect(save).toHaveBeenCalledWith({
-      mode: 'complete',
       provider: 'browser',
       detail: 42,
       autoCopy: false,
