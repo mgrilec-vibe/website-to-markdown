@@ -1,16 +1,26 @@
 lockfile_version: '1'
-generated_at: '2026-07-29T20:45:54.380996+00:00'
+generated_at: '2026-08-05T13:42:05.643349+00:00'
 apm_version: 0.26.0
 dependencies:
 - repo_url: mgrilec-vibe/openspec-workflows
   name: openspec-workflows
   host: github.com
-  resolved_commit: a1f058940529acc776e41007d38b5ca60cc6cb24
-  version: 1.1.0
+  resolved_commit: 79b277f7361803bb90402373f825ee317364e996
+  version: 1.3.0
   package_type: apm_package
   deployed_files:
   - .agents/skills/agy-image-generation
   - .agents/skills/agy-image-generation/SKILL.md
+  - .agents/skills/brainspec-apply
+  - .agents/skills/brainspec-apply/SKILL.md
+  - .agents/skills/brainspec-archive
+  - .agents/skills/brainspec-archive/SKILL.md
+  - .agents/skills/brainspec-coordinate
+  - .agents/skills/brainspec-coordinate/SKILL.md
+  - .agents/skills/brainspec-explore
+  - .agents/skills/brainspec-explore/SKILL.md
+  - .agents/skills/brainspec-propose
+  - .agents/skills/brainspec-propose/SKILL.md
   - .agents/skills/openspec-apply-change
   - .agents/skills/openspec-apply-change/SKILL.md
   - .agents/skills/openspec-archive-change
@@ -36,6 +46,16 @@ dependencies:
   - .claude/commands/opsx-update.md
   - .claude/skills/agy-image-generation
   - .claude/skills/agy-image-generation/SKILL.md
+  - .claude/skills/brainspec-apply
+  - .claude/skills/brainspec-apply/SKILL.md
+  - .claude/skills/brainspec-archive
+  - .claude/skills/brainspec-archive/SKILL.md
+  - .claude/skills/brainspec-coordinate
+  - .claude/skills/brainspec-coordinate/SKILL.md
+  - .claude/skills/brainspec-explore
+  - .claude/skills/brainspec-explore/SKILL.md
+  - .claude/skills/brainspec-propose
+  - .claude/skills/brainspec-propose/SKILL.md
   - .claude/skills/openspec-apply-change
   - .claude/skills/openspec-apply-change/SKILL.md
   - .claude/skills/openspec-archive-change
@@ -75,6 +95,16 @@ dependencies:
   - .github/prompts/opsx-update.prompt.md
   - .kiro/skills/agy-image-generation
   - .kiro/skills/agy-image-generation/SKILL.md
+  - .kiro/skills/brainspec-apply
+  - .kiro/skills/brainspec-apply/SKILL.md
+  - .kiro/skills/brainspec-archive
+  - .kiro/skills/brainspec-archive/SKILL.md
+  - .kiro/skills/brainspec-coordinate
+  - .kiro/skills/brainspec-coordinate/SKILL.md
+  - .kiro/skills/brainspec-explore
+  - .kiro/skills/brainspec-explore/SKILL.md
+  - .kiro/skills/brainspec-propose
+  - .kiro/skills/brainspec-propose/SKILL.md
   - .kiro/skills/openspec-apply-change
   - .kiro/skills/openspec-apply-change/SKILL.md
   - .kiro/skills/openspec-archive-change
@@ -106,12 +136,17 @@ dependencies:
   - .windsurf/workflows/opsx-sync.md
   - .windsurf/workflows/opsx-update.md
   deployed_file_hashes:
-    .agents/skills/agy-image-generation/SKILL.md: sha256:1ee7d106c54867b6ae71592f8eec43a143497a78bb2e5848519fcb1bc16e27b1
-    .agents/skills/openspec-apply-change/SKILL.md: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
-    .agents/skills/openspec-archive-change/SKILL.md: sha256:b9e432f5d2ec23bb7a026985031cd701b54c24ce027aca5dd31fc4f6baaf7113
-    .agents/skills/openspec-explore/SKILL.md: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+    .agents/skills/agy-image-generation/SKILL.md: sha256:a2a3fe87c0c6f63e816ca48f6c2b35711f52bbda9e141a0848e30bd3248a49af
+    .agents/skills/brainspec-apply/SKILL.md: sha256:d5141d8e80d42c1615d3a3219c7c21f26832543459466c5bec8cb66bf174b1c4
+    .agents/skills/brainspec-archive/SKILL.md: sha256:913470ae445f30ce01a7d887e4f7e034312f58bf5d3273c0982d32bf9a5caea7
+    .agents/skills/brainspec-coordinate/SKILL.md: sha256:e3f7169ec25a6d032530ecfabcb4db4589981e5afba23b890271c74e6d99240e
+    .agents/skills/brainspec-explore/SKILL.md: sha256:55d73c8ecdb835ae666711e50d67150ed329ec3f831cfb7457076a39d96a9887
+    .agents/skills/brainspec-propose/SKILL.md: sha256:ac264fa6dc5c36d53421f4a4055f2a3cb415742a2220b3594239b802034b4478
+    .agents/skills/openspec-apply-change/SKILL.md: sha256:e88fa3968357b1493098be801344d5bff46b8026aef2d4e15218532b4abe50b1
+    .agents/skills/openspec-archive-change/SKILL.md: sha256:94ab0ea24dd8a2fcacab65ae4e5e06c5a2325bd19bb3685244d7870fd7cb658d
+    .agents/skills/openspec-explore/SKILL.md: sha256:d9f1b585e0dc366965733ee83344a9d541686849fc77d634963513e59512ec7b
     .agents/skills/openspec-init-repository/SKILL.md: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
-    .agents/skills/openspec-propose/SKILL.md: sha256:16b7b8f5fe4191f10682ec217835f5fc9488f30a52c48bf4ade353c63093dce6
+    .agents/skills/openspec-propose/SKILL.md: sha256:5d2b8b2abb7fefa5ec7d86d7e6aa5ed5c66ee666e4bbf3dc6afaf9bf3ebd1b62
     .agents/skills/openspec-sync-specs/SKILL.md: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
     .agents/skills/openspec-update-change/SKILL.md: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
     .agents/skills/writing-agent-skills/SKILL.md: sha256:a917401d2c2e9c11e21481432188c589c652455e5f4577050967852910474c46
@@ -122,12 +157,17 @@ dependencies:
     .claude/commands/opsx-propose.md: sha256:399dcdf4d0d5eb68245e21594c483275ffef3b99a3fb4d14aa7b53b5bf272874
     .claude/commands/opsx-sync.md: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
     .claude/commands/opsx-update.md: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
-    .claude/skills/agy-image-generation/SKILL.md: sha256:1ee7d106c54867b6ae71592f8eec43a143497a78bb2e5848519fcb1bc16e27b1
-    .claude/skills/openspec-apply-change/SKILL.md: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
-    .claude/skills/openspec-archive-change/SKILL.md: sha256:b9e432f5d2ec23bb7a026985031cd701b54c24ce027aca5dd31fc4f6baaf7113
-    .claude/skills/openspec-explore/SKILL.md: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+    .claude/skills/agy-image-generation/SKILL.md: sha256:a2a3fe87c0c6f63e816ca48f6c2b35711f52bbda9e141a0848e30bd3248a49af
+    .claude/skills/brainspec-apply/SKILL.md: sha256:d5141d8e80d42c1615d3a3219c7c21f26832543459466c5bec8cb66bf174b1c4
+    .claude/skills/brainspec-archive/SKILL.md: sha256:913470ae445f30ce01a7d887e4f7e034312f58bf5d3273c0982d32bf9a5caea7
+    .claude/skills/brainspec-coordinate/SKILL.md: sha256:e3f7169ec25a6d032530ecfabcb4db4589981e5afba23b890271c74e6d99240e
+    .claude/skills/brainspec-explore/SKILL.md: sha256:55d73c8ecdb835ae666711e50d67150ed329ec3f831cfb7457076a39d96a9887
+    .claude/skills/brainspec-propose/SKILL.md: sha256:ac264fa6dc5c36d53421f4a4055f2a3cb415742a2220b3594239b802034b4478
+    .claude/skills/openspec-apply-change/SKILL.md: sha256:e88fa3968357b1493098be801344d5bff46b8026aef2d4e15218532b4abe50b1
+    .claude/skills/openspec-archive-change/SKILL.md: sha256:94ab0ea24dd8a2fcacab65ae4e5e06c5a2325bd19bb3685244d7870fd7cb658d
+    .claude/skills/openspec-explore/SKILL.md: sha256:d9f1b585e0dc366965733ee83344a9d541686849fc77d634963513e59512ec7b
     .claude/skills/openspec-init-repository/SKILL.md: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
-    .claude/skills/openspec-propose/SKILL.md: sha256:16b7b8f5fe4191f10682ec217835f5fc9488f30a52c48bf4ade353c63093dce6
+    .claude/skills/openspec-propose/SKILL.md: sha256:5d2b8b2abb7fefa5ec7d86d7e6aa5ed5c66ee666e4bbf3dc6afaf9bf3ebd1b62
     .claude/skills/openspec-sync-specs/SKILL.md: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
     .claude/skills/openspec-update-change/SKILL.md: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
     .claude/skills/writing-agent-skills/SKILL.md: sha256:a917401d2c2e9c11e21481432188c589c652455e5f4577050967852910474c46
@@ -152,12 +192,17 @@ dependencies:
     .github/prompts/opsx-propose.prompt.md: sha256:5580659bebf637889ae2866689f4173a2d0c7b64521687577cc9814d6e8fae17
     .github/prompts/opsx-sync.prompt.md: sha256:3214b48f91c8653ce5f052e512c184598647e9f7fc07b2a89e0a9702900bf6ca
     .github/prompts/opsx-update.prompt.md: sha256:d8d3c639f79c82db6d23efdb99d7474771867e152a4a72cccc35f914e8eccbd4
-    .kiro/skills/agy-image-generation/SKILL.md: sha256:1ee7d106c54867b6ae71592f8eec43a143497a78bb2e5848519fcb1bc16e27b1
-    .kiro/skills/openspec-apply-change/SKILL.md: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
-    .kiro/skills/openspec-archive-change/SKILL.md: sha256:b9e432f5d2ec23bb7a026985031cd701b54c24ce027aca5dd31fc4f6baaf7113
-    .kiro/skills/openspec-explore/SKILL.md: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+    .kiro/skills/agy-image-generation/SKILL.md: sha256:a2a3fe87c0c6f63e816ca48f6c2b35711f52bbda9e141a0848e30bd3248a49af
+    .kiro/skills/brainspec-apply/SKILL.md: sha256:d5141d8e80d42c1615d3a3219c7c21f26832543459466c5bec8cb66bf174b1c4
+    .kiro/skills/brainspec-archive/SKILL.md: sha256:913470ae445f30ce01a7d887e4f7e034312f58bf5d3273c0982d32bf9a5caea7
+    .kiro/skills/brainspec-coordinate/SKILL.md: sha256:e3f7169ec25a6d032530ecfabcb4db4589981e5afba23b890271c74e6d99240e
+    .kiro/skills/brainspec-explore/SKILL.md: sha256:55d73c8ecdb835ae666711e50d67150ed329ec3f831cfb7457076a39d96a9887
+    .kiro/skills/brainspec-propose/SKILL.md: sha256:ac264fa6dc5c36d53421f4a4055f2a3cb415742a2220b3594239b802034b4478
+    .kiro/skills/openspec-apply-change/SKILL.md: sha256:e88fa3968357b1493098be801344d5bff46b8026aef2d4e15218532b4abe50b1
+    .kiro/skills/openspec-archive-change/SKILL.md: sha256:94ab0ea24dd8a2fcacab65ae4e5e06c5a2325bd19bb3685244d7870fd7cb658d
+    .kiro/skills/openspec-explore/SKILL.md: sha256:d9f1b585e0dc366965733ee83344a9d541686849fc77d634963513e59512ec7b
     .kiro/skills/openspec-init-repository/SKILL.md: sha256:c762155788244a4e530e3d79c55eab9bed289eeffe879fbce728c97cb15a9baa
-    .kiro/skills/openspec-propose/SKILL.md: sha256:16b7b8f5fe4191f10682ec217835f5fc9488f30a52c48bf4ade353c63093dce6
+    .kiro/skills/openspec-propose/SKILL.md: sha256:5d2b8b2abb7fefa5ec7d86d7e6aa5ed5c66ee666e4bbf3dc6afaf9bf3ebd1b62
     .kiro/skills/openspec-sync-specs/SKILL.md: sha256:28426ef41b1ddc622284e1f7ddbdc5ba97b4c33f811114e7f40ff25d5928ffe5
     .kiro/skills/openspec-update-change/SKILL.md: sha256:ce1db0d7c7c805f556b612bb8a760cf5143477c69a0b6ae8a7046616476c29c5
     .kiro/skills/writing-agent-skills/SKILL.md: sha256:a917401d2c2e9c11e21481432188c589c652455e5f4577050967852910474c46
@@ -175,7 +220,7 @@ dependencies:
     .windsurf/workflows/opsx-propose.md: sha256:399dcdf4d0d5eb68245e21594c483275ffef3b99a3fb4d14aa7b53b5bf272874
     .windsurf/workflows/opsx-sync.md: sha256:301ed2aff07258df966d8216e40123e88f336ce1f8c09928aac439d06eaebfe9
     .windsurf/workflows/opsx-update.md: sha256:198e8f690f2cbb279b205c0a9c25df55199550721f1e9bad10a6ed2ddb995d03
-  content_hash: sha256:df5163515ba8f1de77181a3e62e8d585181d1ed4a10ff051e7fbfb9e540d05e5
+  content_hash: sha256:ad2d5e64c279ff5e928a4430881e42027c8e0fa13ae1ab3cf4c1e71012ef1f9b
   declared_license: MIT
 deployments:
 - kind: project-relative
@@ -195,7 +240,97 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:1ee7d106c54867b6ae71592f8eec43a143497a78bb2e5848519fcb1bc16e27b1
+  content_hash: sha256:a2a3fe87c0c6f63e816ca48f6c2b35711f52bbda9e141a0848e30bd3248a49af
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-apply
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-apply/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:d5141d8e80d42c1615d3a3219c7c21f26832543459466c5bec8cb66bf174b1c4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-archive
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-archive/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:913470ae445f30ce01a7d887e4f7e034312f58bf5d3273c0982d32bf9a5caea7
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-coordinate
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-coordinate/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:e3f7169ec25a6d032530ecfabcb4db4589981e5afba23b890271c74e6d99240e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-explore
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-explore/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:55d73c8ecdb835ae666711e50d67150ed329ec3f831cfb7457076a39d96a9887
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-propose
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/brainspec-propose/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ac264fa6dc5c36d53421f4a4055f2a3cb415742a2220b3594239b802034b4478
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/openspec-apply-change
@@ -213,7 +348,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+  content_hash: sha256:e88fa3968357b1493098be801344d5bff46b8026aef2d4e15218532b4abe50b1
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/openspec-archive-change
@@ -231,7 +366,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:b9e432f5d2ec23bb7a026985031cd701b54c24ce027aca5dd31fc4f6baaf7113
+  content_hash: sha256:94ab0ea24dd8a2fcacab65ae4e5e06c5a2325bd19bb3685244d7870fd7cb658d
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/openspec-explore
@@ -249,7 +384,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+  content_hash: sha256:d9f1b585e0dc366965733ee83344a9d541686849fc77d634963513e59512ec7b
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/openspec-init-repository
@@ -285,7 +420,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:16b7b8f5fe4191f10682ec217835f5fc9488f30a52c48bf4ade353c63093dce6
+  content_hash: sha256:5d2b8b2abb7fefa5ec7d86d7e6aa5ed5c66ee666e4bbf3dc6afaf9bf3ebd1b62
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/openspec-sync-specs
@@ -420,7 +555,97 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:1ee7d106c54867b6ae71592f8eec43a143497a78bb2e5848519fcb1bc16e27b1
+  content_hash: sha256:a2a3fe87c0c6f63e816ca48f6c2b35711f52bbda9e141a0848e30bd3248a49af
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-apply
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-apply/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:d5141d8e80d42c1615d3a3219c7c21f26832543459466c5bec8cb66bf174b1c4
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-archive
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-archive/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:913470ae445f30ce01a7d887e4f7e034312f58bf5d3273c0982d32bf9a5caea7
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-coordinate
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-coordinate/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:e3f7169ec25a6d032530ecfabcb4db4589981e5afba23b890271c74e6d99240e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-explore
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-explore/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:55d73c8ecdb835ae666711e50d67150ed329ec3f831cfb7457076a39d96a9887
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-propose
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/brainspec-propose/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ac264fa6dc5c36d53421f4a4055f2a3cb415742a2220b3594239b802034b4478
 - kind: project-relative
   target: claude
   value: .claude/skills/openspec-apply-change
@@ -438,7 +663,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+  content_hash: sha256:e88fa3968357b1493098be801344d5bff46b8026aef2d4e15218532b4abe50b1
 - kind: project-relative
   target: claude
   value: .claude/skills/openspec-archive-change
@@ -456,7 +681,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:b9e432f5d2ec23bb7a026985031cd701b54c24ce027aca5dd31fc4f6baaf7113
+  content_hash: sha256:94ab0ea24dd8a2fcacab65ae4e5e06c5a2325bd19bb3685244d7870fd7cb658d
 - kind: project-relative
   target: claude
   value: .claude/skills/openspec-explore
@@ -474,7 +699,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+  content_hash: sha256:d9f1b585e0dc366965733ee83344a9d541686849fc77d634963513e59512ec7b
 - kind: project-relative
   target: claude
   value: .claude/skills/openspec-init-repository
@@ -510,7 +735,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:16b7b8f5fe4191f10682ec217835f5fc9488f30a52c48bf4ade353c63093dce6
+  content_hash: sha256:5d2b8b2abb7fefa5ec7d86d7e6aa5ed5c66ee666e4bbf3dc6afaf9bf3ebd1b62
 - kind: project-relative
   target: claude
   value: .claude/skills/openspec-sync-specs
@@ -771,7 +996,97 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:1ee7d106c54867b6ae71592f8eec43a143497a78bb2e5848519fcb1bc16e27b1
+  content_hash: sha256:a2a3fe87c0c6f63e816ca48f6c2b35711f52bbda9e141a0848e30bd3248a49af
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-apply
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-apply/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:d5141d8e80d42c1615d3a3219c7c21f26832543459466c5bec8cb66bf174b1c4
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-archive
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-archive/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:913470ae445f30ce01a7d887e4f7e034312f58bf5d3273c0982d32bf9a5caea7
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-coordinate
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-coordinate/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:e3f7169ec25a6d032530ecfabcb4db4589981e5afba23b890271c74e6d99240e
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-explore
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-explore/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:55d73c8ecdb835ae666711e50d67150ed329ec3f831cfb7457076a39d96a9887
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-propose
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: null
+- kind: project-relative
+  target: kiro
+  value: .kiro/skills/brainspec-propose/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - mgrilec-vibe/openspec-workflows
+  active_owner: mgrilec-vibe/openspec-workflows
+  content_hash: sha256:ac264fa6dc5c36d53421f4a4055f2a3cb415742a2220b3594239b802034b4478
 - kind: project-relative
   target: kiro
   value: .kiro/skills/openspec-apply-change
@@ -789,7 +1104,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:b9b8150ef0cd5c5775b55574d05971b81fd7fe1708fc0ad791dfbd7f17213cd9
+  content_hash: sha256:e88fa3968357b1493098be801344d5bff46b8026aef2d4e15218532b4abe50b1
 - kind: project-relative
   target: kiro
   value: .kiro/skills/openspec-archive-change
@@ -807,7 +1122,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:b9e432f5d2ec23bb7a026985031cd701b54c24ce027aca5dd31fc4f6baaf7113
+  content_hash: sha256:94ab0ea24dd8a2fcacab65ae4e5e06c5a2325bd19bb3685244d7870fd7cb658d
 - kind: project-relative
   target: kiro
   value: .kiro/skills/openspec-explore
@@ -825,7 +1140,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:72f069f0d0a8577f59b2de30a928a8feb9b6715de0fb06fc36e636e2a5de513b
+  content_hash: sha256:d9f1b585e0dc366965733ee83344a9d541686849fc77d634963513e59512ec7b
 - kind: project-relative
   target: kiro
   value: .kiro/skills/openspec-init-repository
@@ -861,7 +1176,7 @@ deployments:
   owners:
   - mgrilec-vibe/openspec-workflows
   active_owner: mgrilec-vibe/openspec-workflows
-  content_hash: sha256:16b7b8f5fe4191f10682ec217835f5fc9488f30a52c48bf4ade353c63093dce6
+  content_hash: sha256:5d2b8b2abb7fefa5ec7d86d7e6aa5ed5c66ee666e4bbf3dc6afaf9bf3ebd1b62
 - kind: project-relative
   target: kiro
   value: .kiro/skills/openspec-sync-specs
