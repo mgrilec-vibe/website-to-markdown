@@ -1,14 +1,14 @@
 # Website to Markdown
 
-A local-first Chrome extension that converts the active tab into reviewable Markdown. It captures, converts, summarizes, previews, copies, and downloads content on-device; it does not send page content to a server.
+A local-first Chrome extension that converts the active tab into Markdown. It captures, converts, summarizes, and downloads content on-device; it does not send page content to a server.
 
 ## Features
 
 - Capture the active `http:` or `https:` page with source title, URL, and capture time.
-- Export the focused article content from the active page.
+- Open the popup to a READY configuration: choose **Focused article** or **Complete page**, a summarization provider, and a Detail level, then build Markdown for that one export.
 - Choose **None**, **Custom extractive**, or **Browser local AI** summarization. Browser local AI falls back to the deterministic custom extractor when unavailable.
 - Set a Detail level from 0–100 for summarized exports. Detail 100 preserves eligible prose without generating a summary.
-- Review one sanitized Markdown preview, then copy or download the exact Markdown result.
+- Receive a compact completion receipt with source identity, measured words and Markdown size, an estimated token count, and diagnostics; then copy or download the exact Markdown result.
 - Save the summarization provider, Detail level, and automatic-copy preference in extension settings.
 
 Protected Markdown structures—source provenance, headings, link destinations, code, tables, quotations, and conversion notices—remain verbatim in summarized exports. Canvas content, protected or cross-origin frames, and inaccessible browser pages may not be represented completely.
@@ -28,7 +28,7 @@ npm run build
 4. Choose `.output/chrome-mv3`.
 5. Open **Website to Markdown** from the Chrome toolbar.
 
-The extension converts the current tab immediately using the saved settings. Use the extension action's **Settings** menu to choose a summarization provider, Detail, and automatic copy behavior.
+The extension action opens the READY configuration, then builds one export when you activate **Build Markdown**. Saved settings seed the popup; changing them for one export does not change your defaults. Use the extension action's **Settings** menu to choose the default summarization provider, Detail, and automatic copy behavior.
 
 ## Production popup smoke procedure
 
@@ -36,9 +36,9 @@ Use the production build—not the corpus benchmark—to verify the active-tab b
 
 1. Load `.output/chrome-mv3` as an unpacked extension.
 2. Open an accessible `http:` or `https:` page and make that tab active.
-3. Open the extension action and wait for the single Markdown result.
-4. Confirm the source URL, capture time, requested provider, and actual result origin are displayed.
-5. Copy or download the Markdown and confirm the copied/downloaded UTF-8 bytes match the displayed result.
+3. Open the extension action, choose **Focused article** or **Complete page** and a provider, then activate **Build Markdown**.
+4. Confirm the receipt shows the source URL, capture time, requested provider, and actual result origin.
+5. Copy or download the Markdown and confirm the copied/downloaded UTF-8 bytes match the exported result.
 
 This smoke exercises `activeTab`, `chrome.scripting`, popup rendering, and export delivery. It does not replace the static-corpus benchmark.
 

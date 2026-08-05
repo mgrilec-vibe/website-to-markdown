@@ -22,7 +22,7 @@ export function mountSettingsApp(root: HTMLElement, dependencies: SettingsDepend
         <header>
           <p class="eyebrow">Website to Markdown</p>
           <h1>Export settings</h1>
-          <p>Quick export uses these local defaults. Browser summarization uses Chrome local AI when available and otherwise falls back to deterministic extraction.</p>
+          <p>These local defaults seed the popup, which opens with Focused article and lets you choose Complete page for one export. Browser summarization uses Chrome local AI when available and otherwise falls back to deterministic extraction.</p>
         </header>
         <form id="settings-form" class="card settings-form">
           <label class="field">Summarization

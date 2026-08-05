@@ -1,6 +1,6 @@
 # Document Journey prototype — planning
 
-Status: Planning only — not implemented. No source, test, or OpenSpec changes have been made.
+Status: Superseded by the OpenSpec change `redesign-export-popup-ready-receipt`, which is the implementation source of truth for the popup redesign. This file remains as historical discovery context only.
 
 ## Source
 
