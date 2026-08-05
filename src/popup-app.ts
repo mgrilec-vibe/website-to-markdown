@@ -69,6 +69,14 @@ export function mountExportPopup(
   preferences: ExportPreferences,
   dependencies: PopupDependencies,
 ): void {
+  const popupWidth = '22rem';
+  root.ownerDocument.documentElement.style.width = popupWidth;
+  root.ownerDocument.documentElement.style.minWidth = popupWidth;
+  root.ownerDocument.body.style.width = popupWidth;
+  root.ownerDocument.body.style.minWidth = popupWidth;
+  root.style.width = popupWidth;
+  root.style.minWidth = popupWidth;
+
   let state: PopupState = {
     kind: 'ready',
     draft: { mode: 'focused', provider: preferences.provider, detail: preferences.detail },
@@ -263,7 +271,12 @@ export function mountExportPopup(
     ].join(' · ');
     root.querySelector<HTMLElement>('#model')!.textContent = browserFailure ?? '';
     const limitations = root.querySelector<HTMLElement>('#limitations')!;
-    limitations.textContent = result.limitations.map((notice) => `Conversion limitation: ${notice}`).join('\n');
+    limitations.textContent = result.limitations.map((notice) => {
+      const receiptNotice = notice.startsWith('Image omitted because its source URL is unsupported:')
+        ? 'An image was omitted because its source URL is unsupported.'
+        : notice;
+      return `Conversion limitation: ${receiptNotice}`;
+    }).join('\n');
     root.querySelector<HTMLElement>('#action-error')!.textContent = actionError ?? '';
     root.querySelector<HTMLButtonElement>('#copy')!.textContent = copyState === 'copying' ? 'Copying Markdown…' : 'Copy Markdown';
     root.querySelector<HTMLButtonElement>('#copy')!.addEventListener('click', () => { void copyFinal(finalExport); });

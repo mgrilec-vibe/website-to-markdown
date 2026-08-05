@@ -221,18 +221,38 @@ describe('ready export popup workflow', () => {
     const copyFinalMarkdown = vi.fn(async () => undefined);
     popup(root, { captureActiveTab, copyFinalMarkdown });
 
+    expect(doc.documentElement.style.width).toBe('22rem');
+    expect(root.style.width).toBe('22rem');
     expect(captureActiveTab).not.toHaveBeenCalled();
     build(root, { mode: 'complete', provider: 'custom', detail: 40 });
 
     await vi.waitFor(() => expect(captureActiveTab).toHaveBeenCalledTimes(1));
     expect(root.textContent).toContain('Building Markdown');
     expect(root.textContent).toContain('Capturing the active page locally');
+    expect(root.style.width).toBe('22rem');
     expect(root.textContent).not.toContain('Copied to clipboard.');
     expect(root.querySelector('#ready-form')).toBeNull();
     resolveCapture({ id: 'export-1' });
 
     await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledWith(markdown));
     expect(root.textContent).toContain('Copied to clipboard.');
+  });
+
+  it('keeps page-derived image alt text out of receipt limitations', async () => {
+    const { document: doc } = document();
+    const root = doc.querySelector<HTMLElement>('#app')!;
+    const privateLimitationExport: FinalExport = {
+      ...browserFallback,
+      result: {
+        ...browserFallback.result,
+        limitations: ['Image omitted because its source URL is unsupported: Private customer invoice.'],
+      },
+    };
+    popup(root, { createFinalExport: async () => privateLimitationExport });
+    build(root, {});
+
+    await vi.waitFor(() => expect(root.textContent).toContain('An image was omitted because its source URL is unsupported.'));
+    expect(root.textContent).not.toContain('Private customer invoice');
   });
 
   it('retains the exact result and permits retry when automatic copying fails', async () => {

@@ -1,5 +1,5 @@
 :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; line-height: 1.5; }
-html, body, #app { min-width: 22rem; }
+html, body, #app { width: 22rem; min-width: 22rem; max-width: 22rem; }
 body { margin: 0; background: Canvas; color: CanvasText; }
 button, input, select { font: inherit; }
 button { cursor: pointer; padding: .55rem .8rem; border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); border-radius: .4rem; background: ButtonFace; color: ButtonText; }
@@ -9,7 +9,7 @@ button.primary { background: #5b6cff; border-color: #5b6cff; color: #fff; font-w
 button.primary:hover:not(:disabled) { background: color-mix(in srgb, #5b6cff 88%, black); border-color: #5b6cff; }
 h1, h2, p { margin-top: 0; }
 .eyebrow { margin-bottom: .2rem; color: #5b6cff; font-size: .8rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
-.export-popup { width: 22rem; max-width: 100%; padding: 1rem; box-sizing: border-box; }
+.export-popup { width: 100%; padding: 1rem; box-sizing: border-box; }
 .export-popup h1 { margin: 0; font-size: 1.1rem; }
 .export-popup h2 { margin: 0; font-size: 1rem; }
 .export-popup button { width: 100%; margin-top: .75rem; }
