@@ -211,6 +211,30 @@ describe('ready export popup workflow', () => {
     expect(root.querySelector('textarea, .output-grid, #baseline, #derived')).toBeNull();
   });
 
+  it('transitions to a non-empty Building Markdown surface while capture is pending', async () => {
+    const { document: doc } = document();
+    const root = doc.querySelector<HTMLElement>('#app')!;
+    let resolveCapture: (value: { id?: string; error?: string }) => void = () => undefined;
+    const captureActiveTab = vi.fn(() => new Promise<{ id?: string; error?: string }>((resolve) => {
+      resolveCapture = resolve;
+    }));
+    const copyFinalMarkdown = vi.fn(async () => undefined);
+    popup(root, { captureActiveTab, copyFinalMarkdown });
+
+    expect(captureActiveTab).not.toHaveBeenCalled();
+    build(root, { mode: 'complete', provider: 'custom', detail: 40 });
+
+    await vi.waitFor(() => expect(captureActiveTab).toHaveBeenCalledTimes(1));
+    expect(root.textContent).toContain('Building Markdown');
+    expect(root.textContent).toContain('Capturing the active page locally');
+    expect(root.textContent).not.toContain('Copied to clipboard.');
+    expect(root.querySelector('#ready-form')).toBeNull();
+    resolveCapture({ id: 'export-1' });
+
+    await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledWith(markdown));
+    expect(root.textContent).toContain('Copied to clipboard.');
+  });
+
   it('retains the exact result and permits retry when automatic copying fails', async () => {
     const { document: doc } = document();
     const root = doc.querySelector<HTMLElement>('#app')!;
