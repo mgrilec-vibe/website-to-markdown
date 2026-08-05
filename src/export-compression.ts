@@ -15,15 +15,15 @@ const encoder = new TextEncoder();
 
 export function detailPolicy(detail: number): DetailPolicy {
   const normalized = Math.max(0, Math.min(100, Math.round(detail)));
-  const extractiveSentenceRatio = normalized === 100 ? 0 : Math.max(0.1, normalized / 100);
+  const extractiveSentenceRatio = normalized === 100 ? 0 : Math.max(0, Math.min(1, normalized / 100));
   if (normalized === 100) {
-    return { version: 1, detail: normalized, retainRatio: 1, extractiveSentenceRatio, summaryEnabled: false, description: 'Full source detail; no prose is replaced by a summary.' };
+    return { version: 2, detail: normalized, retainRatio: 1, extractiveSentenceRatio, summaryEnabled: false, description: 'Full source detail; no prose is replaced by a summary.' };
   }
-  if (normalized >= 85) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'key-points', description: 'Near source detail with long local key-point summaries.' };
-  if (normalized >= 65) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'tldr', description: 'Detailed sections with long local summaries.' };
-  if (normalized >= 40) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'medium', summaryType: 'key-points', description: 'Balanced detail with medium local key-point summaries.' };
-  if (normalized >= 15) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'key-points', description: 'Brief detail with short local key-point summaries.' };
-  return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'headline', description: 'Outline detail with headline-oriented local summaries.' };
+  if (normalized >= 85) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'key-points', description: 'Near source detail with long local key-point summaries.' };
+  if (normalized >= 65) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'tldr', description: 'Detailed sections with long local summaries.' };
+  if (normalized >= 40) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'medium', summaryType: 'key-points', description: 'Balanced detail with medium local key-point summaries.' };
+  if (normalized >= 15) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'key-points', description: 'Brief detail with short local key-point summaries.' };
+  return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'headline', description: 'Outline detail with headline-oriented local summaries.' };
 }
 
 export function countWords(markdown: string): number {
@@ -115,7 +115,7 @@ function resultFromBlocks(
     language,
     generatedSummaryCount: 0,
     summaryChunkCount: 0,
-    policyVersion: 1,
+    policyVersion: 2,
   };
   let markdown = '';
   for (let iteration = 0; iteration < 3; iteration += 1) {
@@ -289,7 +289,7 @@ export function withSummaries(
       ...bodyBlocks.map((block) => ({ sourceOrder: block.sourceOrder, markdown: block.markdown.trim() })),
       ...generated.map((summary) => ({
         sourceOrder: summary.block.sourceOrder,
-        markdown: `> **Custom extractive summary**\n>\n> ${summary.markdown.trim().replace(/\n/g, '\n> ')}`,
+        markdown: `> ${summary.markdown.trim().replace(/\n/g, '\n> ')}`,
       })),
     ].sort((left, right) => left.sourceOrder - right.sourceOrder);
     body = ordered.map((entry) => entry.markdown).filter(Boolean).join('\n\n');
