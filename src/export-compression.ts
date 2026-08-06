@@ -249,7 +249,7 @@ function relevanceScores(candidates: readonly SourceSentence[], frequency: Reado
 export function extractiveSummaries(blocks: readonly MarkdownBlock[], detail: number): readonly { readonly block: MarkdownBlock; readonly markdown: string }[] {
   const sentences = blocks.flatMap(sourceSentences);
   const policy = detailPolicy(detail);
-  if (!sentences.length || policy.extractiveSentenceRatio === 0) return [];
+  if (!sentences.length || !policy.summaryEnabled) return [];
   const frequency = new Map<string, number>();
   for (const sentence of sentences) {
     for (const token of sentenceTokens(sentence.sentence)) frequency.set(token, (frequency.get(token) ?? 0) + 1);

@@ -22,7 +22,7 @@ None.
 
 ## Impact
 
-- `src/export-compression.ts` — `detailPolicy` (curve + version bump), `retentionPriority` / `retainedSummarizable` (stable nested retention), `extractiveSummaries` usage (stable all-eligible scoring input), `withSummaries` (Custom branch only; bare `>` framing), and `countWords` (standalone `>` markers excluded from word counts). The `local-ai` branch and its `## Summary` heading are untouched. `relevanceScores` and its formula are NOT changed in this increment.
+- `src/export-compression.ts` — `detailPolicy` (curve + version bump), `retentionPriority` / `retainedSummarizable` (stable nested retention), `extractiveSummaries` usage (stable all-eligible scoring input and Detail-0 guard), `withSummaries` (Custom branch only; bare `>` framing), and `countWords` (standalone `>` markers excluded from word counts). The `local-ai` branch and its `## Summary` heading are untouched. `relevanceScores` and its formula are NOT changed in this increment.
 - `src/export-domain.ts` — widen the `DetailPolicy.version` and `ExportMetadata.policyVersion` literal types from `1` to `1 | 2`. `EXPORT_FORMAT_VERSION` is unchanged.
 - `tests/export-compression.test.ts`, `tests/preview-output.test.ts`, `tests/popup-app.test.ts:40` — assertion updates for the new framing and `policyVersion: 2`.
 - `openspec/specs/local-ai-markdown-compression/spec.md` — delta requirement modified for the Custom repeated-label prohibition, Detail curve, and word-count monotonicity.

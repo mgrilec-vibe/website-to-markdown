@@ -168,6 +168,12 @@ describe('deterministic compression', () => {
     expect(result.markdown).toContain('summary_origin: deterministic-diverse-extractive');
     expect(result.markdown).toContain(`generated_summary_count: ${result.metadata.generatedSummaryCount}`);
     expect(result.markdown).toMatch(/^> .+$/mu);
+    const summaryLines = result.markdown.split('\n').filter((line) => /^> (?!Conversion limitation:)/u.test(line));
+    expect(summaryLines).toHaveLength(result.summarizableBlocks.length);
+    const zeroDetail = deterministicExtractiveCompression(captured, conversion, 'complete', 0, declaredLanguage);
+    const zeroDetailSummaryLines = zeroDetail.markdown.split('\n').filter((line) => /^> (?!Conversion limitation:)/u.test(line));
+    expect(zeroDetail.metadata.generatedSummaryCount).toBeGreaterThan(0);
+    expect(zeroDetailSummaryLines).toHaveLength(zeroDetail.summarizableBlocks.length);
     expect(result.markdown).not.toContain('Custom extractive summary');
     expect(result.markdown).toContain('https://example.com/guide');
     expect(result.markdown).toContain('```ts');
