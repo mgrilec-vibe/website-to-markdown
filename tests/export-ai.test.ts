@@ -32,7 +32,7 @@ afterAll(() => {
 });
 
 const policy: DetailPolicy = {
-  version: 1,
+  version: 2,
   detail: 2,
   retainRatio: 0.5,
   extractiveSentenceRatio: 0.5,

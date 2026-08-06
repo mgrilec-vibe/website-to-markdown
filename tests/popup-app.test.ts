@@ -37,7 +37,7 @@ const browserFallback: FinalExport = {
       language: { origin: 'unknown', alternatives: [], supported: false },
       generatedSummaryCount: 1,
       summaryChunkCount: 0,
-      policyVersion: 1,
+      policyVersion: 2,
     },
     limitations: ['Focused extraction was unavailable; use complete-page export.'],
     removedBlockIds: [],

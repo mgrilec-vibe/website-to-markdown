@@ -33,7 +33,7 @@ export interface MarkdownBlock {
 }
 
 export interface DetailPolicy {
-  readonly version: 1;
+  readonly version: 1 | 2;
   readonly detail: number;
   readonly retainRatio: number;
   readonly extractiveSentenceRatio: number;
@@ -76,7 +76,7 @@ export interface ExportMetadata extends CaptureMetadata {
   readonly language: LanguageState;
   readonly generatedSummaryCount: number;
   readonly summaryChunkCount: number;
-  readonly policyVersion: 1;
+  readonly policyVersion: 1 | 2;
 }
 
 export interface CompressionResult {

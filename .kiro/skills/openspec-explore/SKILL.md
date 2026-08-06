@@ -1,7 +1,7 @@
 ---
 name: openspec-explore
 description: Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.
-allowed-tools: Bash(openspec:*)
+allowed-tools: Bash(openspec:*), Bash(git:*)
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -12,9 +12,11 @@ metadata:
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
-**IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first and create a change proposal. You MAY create OpenSpec artifacts (proposals, designs, specs) if the user asks—that's capturing thinking, not implementing.
+**IMPORTANT: Explore mode is for thinking, not implementation.** You may read files, search code, investigate the codebase, and—when the user explicitly asks to capture a finding—write OpenSpec planning artifacts. You MUST NOT write application code, tests, build configuration, or canonical specifications in the primary/default worktree. For a new change, transition to `openspec-propose` before any repository artifact write.
 
 **This is a stance, not a workflow.** There are no fixed steps, no required sequence, no mandatory outputs. You're a thinking partner helping the user explore.
+
+**Repository baseline:** In a Git repository, record `git status --porcelain=v2 -uall`, `git diff --binary HEAD`, and a `git hash-object` result for every untracked path when entering explore mode. Before an explicitly requested capture, record the exact allowed artifact paths. Recheck and compare all three before handing off or yielding. If any changed path lies outside the explicitly captured artifacts, report it as a workflow violation and stop without staging, resetting, stashing, deleting, or otherwise cleaning it.
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
@@ -112,25 +114,14 @@ If the user mentions a change or you detect one is relevant:
 
 2. **Reference them naturally in conversation**
    - "Your design mentions using Redis, but we just realized SQLite fits better..."
-   - "The proposal scopes this to premium users, but we're now thinking everyone..."
+3. **Capture or hand off when decisions are made**
 
-3. **Offer to capture when decisions are made**
-
-    | Insight Type               | Where to Capture               |
-    |----------------------------|--------------------------------|
-    | New requirement discovered | `specs/<capability>/spec.md` |
-    | Requirement changed        | `specs/<capability>/spec.md` |
-    | Design decision made       | `design.md`                  |
-    | Scope changed              | `proposal.md`                |
-    | New work identified        | `tasks.md`                   |
-    | Assumption invalidated     | Relevant artifact              |
-
-   Example offers:
-   - "That's a design decision. Capture it in design.md?"
-   - "This is a new requirement. Add it to specs?"
-   - "This changes scope. Update the proposal?"
-
-4. **The user decides** - Offer and move on. Don't pressure. Don't auto-capture.
+   - For a new change, offer to exit explore mode and invoke `openspec-propose`. Do not create a worktree, branch, or artifact in the source worktree.
+   - For an existing change, the user MAY explicitly request capture in that change's proposal, design, delta specs, or tasks.
+   - Before capturing an existing change, resolve `planningHome`, `changeRoot`, and `actionContext`; verify the current Git worktree is that change's non-primary worktree and record its branch and baseline status.
+   - Write only the requested OpenSpec artifact under `changeRoot`; do not edit `src/`, test files, package/build configuration, or canonical `openspec/specs/**`.
+   - Summarize the exact requirement, design, scope, task, or assumption change for the user and next workflow.
+   - Never auto-capture; the user decides whether a finding becomes an artifact.
 
 ---
 
@@ -251,11 +242,9 @@ You: That changes everything.
 
 ## Ending Discovery
 
-There's no required ending. Discovery might:
-
 - **Flow into a proposal**: "Ready to start? I can create a change proposal."
-- **Result in artifact updates**: "Updated design.md with these decisions"
-- **Just provide clarity**: User has what they need, moves on
+- **Result in artifact updates**: Capture an explicitly requested decision in a verified existing change worktree.
+- **Result in a handoff summary**: Record the decisions to capture through `openspec-propose` or `openspec-update-change`.
 - **Continue later**: "We can pick this up anytime"
 
 When it feels like things are crystallizing, you might summarize:
@@ -276,15 +265,17 @@ When it feels like things are crystallizing, you might summarize:
 
 But this summary is optional. Sometimes the thinking IS the value.
 
----
-
 ## Guardrails
 
-- **Don't implement** - Never write code or implement features. Creating OpenSpec artifacts is fine, writing application code is not.
-- **Don't fake understanding** - If something is unclear, dig deeper
-- **Don't rush** - Discovery is thinking time, not task time
-- **Don't force structure** - Let patterns emerge naturally
-- **Don't auto-capture** - Offer to save insights, don't just do it
-- **Do visualize** - A good diagram is worth many paragraphs
-- **Do explore the codebase** - Ground discussions in reality
-- **Do question assumptions** - Including the user's and your own
+- **No implementation** - Never write application code, tests, build configuration, or other implementation files.
+- **Capture only on request** - OpenSpec planning artifacts may be written only when the user explicitly asks to capture a finding or decision.
+- **Capture has an owner** - For an existing change, verify its non-primary worktree and write only paths under `changeRoot`. For a new change, hand off to `openspec-propose` before writing.
+- **Protect canonical state** - Never edit canonical `openspec/specs/**` in the primary/default worktree from explore mode.
+- **Baseline every exploration** - Report unexpected changes outside explicitly captured artifacts; never clean them up.
+- **Don't fake understanding** - If something is unclear, dig deeper.
+- **Don't rush** - Discovery is thinking time, not task time.
+- **Don't force structure** - Let patterns emerge naturally.
+- **Do not auto-capture** - The user decides when findings become artifacts.
+- **Do visualize** - A good diagram is worth many paragraphs.
+- **Do explore the codebase** - Ground discussions in reality.
+- **Do question assumptions** - Including the user's and your own.

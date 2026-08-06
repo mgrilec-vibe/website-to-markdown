@@ -17,10 +17,10 @@ The repository MUST contain a single GitHub Actions workflow at `.github/workflo
 
 ### Requirement: CI workflow runs the gate pipeline on Node 24
 
-The workflow MUST install dependencies with `npm ci` and MUST run, in order, `wxt prepare`, `npm run typecheck`, the curated smoke subset (`npm test -- tests/conversion.test.ts tests/export-workflow.test.ts tests/validation.test.ts`), and `npm run build`. All four pipeline commands MUST execute on Node 24, pinned via `actions/setup-node`. If any command exits non-zero, the workflow MUST fail.
+The workflow MUST install dependencies with `npm ci` and MUST run, in order, `wxt prepare`, `npm run typecheck`, the curated smoke subset (`npm test -- tests/conversion.test.ts tests/export-workflow.test.ts`), `npm run build`, and `npm run build:benchmark`. All five pipeline commands MUST execute on Node 24, pinned via `actions/setup-node`. If any command exits non-zero, the workflow MUST fail.
 
 #### Scenario: Successful local commands all pass in CI
-- **WHEN** `npm ci`, `wxt prepare`, `npm run typecheck`, the smoke subset command above, and `npm run build` all succeed locally on the current `main`
+- **WHEN** `npm ci`, `wxt prepare`, `npm run typecheck`, the curated smoke subset command above, `npm run build`, and `npm run build:benchmark` all succeed locally on the current main
 - **THEN** the same sequence passes in the CI workflow without modification
 
 #### Scenario: Typecheck failure fails the workflow
@@ -28,22 +28,34 @@ The workflow MUST install dependencies with `npm ci` and MUST run, in order, `wx
 - **THEN** the `npm run typecheck` step exits non-zero and the workflow reports failure
 
 #### Scenario: Smoke test failure fails the workflow
-- **WHEN** a pull request changes behavior such that one of the three curated smoke test files fails
+- **WHEN** a pull request changes behavior such that one of the curated smoke test files fails
 - **THEN** the `Run smoke tests` step exits non-zero and the workflow reports failure
 
 #### Scenario: Build failure fails the workflow
 - **WHEN** `npm run build` cannot produce `.output/chrome-mv3/` because of a WXT or manifest error
 - **THEN** the `npm run build` step exits non-zero and the workflow reports failure
 
-### Requirement: CI workflow publishes the unpacked Chrome extension as a downloadable artifact
+#### Scenario: Benchmark build failure fails the workflow
+- **WHEN** `npm run build:benchmark` cannot produce `.output/benchmark-mv3/` because of a WXT, manifest, or bundled-corpus error
+- **THEN** the workflow reports failure before attempting either artifact upload
 
-The workflow MUST upload the contents of `.output/chrome-mv3/**` as a single artifact using `actions/upload-artifact@v4`. The artifact MUST be named `extension-chrome-mv3-<short-sha>` where `<short-sha>` is the commit SHA being built. The upload step MUST use `if-no-files-found: error` so a missing or renamed output directory produces a visible failure rather than an empty artifact. Retention MUST be set to 14 days.
+### Requirement: CI workflow publishes unpacked extension artifacts
 
-#### Scenario: Reviewer downloads and loads the artifact
-- **WHEN** a reviewer opens the workflow run summary page
-- **THEN** they can download an artifact named `extension-chrome-mv3-<short-sha>` whose unpacked contents are loadable into Chrome via `chrome://extensions` → "Load unpacked" and surface the extension declared by `wxt.config.ts`
+The workflow MUST upload the contents of `.output/chrome-mv3/**` and `.output/benchmark-mv3/**` as separate artifacts using `actions/upload-artifact@v4`. The production artifact MUST be named `extension-chrome-mv3-<sha>` and the benchmark artifact MUST be named `extension-benchmark-mv3-<sha>`, where `<sha>` is the commit SHA being built. Both upload steps MUST use `if-no-files-found: error` and a 14-day retention period so missing or renamed outputs fail visibly rather than producing empty artifacts.
+
+#### Scenario: Reviewer downloads production and benchmark artifacts
+- **WHEN** a reviewer opens the workflow run summary page for a pull request or push to `main`
+- **THEN** they can download separately named production and benchmark artifacts whose unpacked roots are loadable through Chrome Developer Mode
+
+#### Scenario: Reviewer runs a downloaded benchmark artifact
+- **WHEN** a reviewer downloads and unpacks `extension-benchmark-mv3-<short-sha>`
+- **THEN** they can load its root as the benchmark extension on a qualifying Chrome machine without a source checkout, Node.js, or a local build command
 
 #### Scenario: Missing build output fails the upload step
 - **WHEN** the build step exits zero but `.output/chrome-mv3/` is absent or empty (for example because WXT renamed its output directory)
 - **THEN** the `actions/upload-artifact` step fails with `if-no-files-found: error` rather than uploading an unloadable artifact
+
+#### Scenario: Missing benchmark output fails the upload step
+- **WHEN** `npm run build:benchmark` exits zero but `.output/benchmark-mv3/` is absent or empty
+- **THEN** the benchmark artifact upload fails with `if-no-files-found: error` rather than uploading an unloadable artifact
 
