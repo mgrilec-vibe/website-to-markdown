@@ -18,9 +18,10 @@ describe('Preview output', () => {
     const { document } = parseHTML('<!doctype html><html><body></body></html>');
     const output = createPreviewOutput(document as unknown as Document);
 
-    renderPreviewMarkdown(output.view, '> **Custom extractive summary**\n>\n> Selected source sentence.');
+    renderPreviewMarkdown(output.view, '> Selected source sentence.');
 
-    expect(output.view.querySelector('blockquote strong')?.textContent).toBe('Custom extractive summary');
+    expect(output.view.querySelector('blockquote')?.textContent?.trim()).toBe('Selected source sentence.');
+    expect(output.view.querySelector('blockquote strong')).toBeNull();
     expect(output.view.textContent).toContain('Selected source sentence.');
   });
 });

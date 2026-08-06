@@ -27,7 +27,7 @@ export function detailPolicy(detail: number): DetailPolicy {
 }
 
 export function countWords(markdown: string): number {
-  return markdown.trim() ? markdown.trim().split(/\s+/u).length : 0;
+  return markdown.trim() ? markdown.trim().split(/\s+/u).filter((token) => token !== '>').length : 0;
 }
 
 export function countBytes(markdown: string): number {
@@ -62,16 +62,29 @@ function frontMatter(metadata: ExportMetadata): string {
   ].join('\n');
 }
 
+function retentionPriority(blocks: readonly MarkdownBlock[]): readonly MarkdownBlock[] {
+  const midpointKeep = Math.floor(blocks.length / 2);
+  const priority: MarkdownBlock[] = [];
+  const selected = new Set<string>();
+  for (let index = 0; index < midpointKeep; index += 1) {
+    const position = midpointKeep <= 1 ? 0 : Math.round((index * (blocks.length - 1)) / (midpointKeep - 1));
+    const block = blocks[position];
+    if (block && !selected.has(block.id)) {
+      priority.push(block);
+      selected.add(block.id);
+    }
+  }
+  for (const block of blocks) {
+    if (!selected.has(block.id)) priority.push(block);
+  }
+  return priority;
+}
+
 function retainedSummarizable(blocks: readonly MarkdownBlock[], retainRatio: number): ReadonlySet<string> {
   const keep = retainRatio === 1 ? blocks.length : Math.floor(blocks.length * retainRatio);
   if (keep === 0) return new Set();
   if (keep >= blocks.length) return new Set(blocks.map((block) => block.id));
-  const selected = new Set<string>();
-  for (let index = 0; index < keep; index += 1) {
-    const position = Math.round((index * (blocks.length - 1)) / Math.max(keep - 1, 1));
-    selected.add(blocks[position]!.id);
-  }
-  return selected;
+  return new Set(retentionPriority(blocks).slice(0, keep).map((block) => block.id));
 }
 
 export function unknownLanguageState(declaredLanguage?: string): LanguageState {
@@ -320,7 +333,11 @@ export function deterministicExtractiveCompression(
   requestedProvider: SummarizationProvider = 'custom',
 ): CompressionResult {
   const result = deterministicCompression(captured, conversion, mode, detail, language, requestedProvider);
-  return result.metadata.detail === 100 ? result : withSummaries(result, extractiveSummaries(result.summarizableBlocks, detail), 'deterministic-diverse-extractive');
+  if (result.metadata.detail === 100) return result;
+  const eligible = conversion.blocks.filter((block) => block.kind === 'summarizable');
+  const summaryIds = new Set(result.summarizableBlocks.map((block) => block.id));
+  const summaries = extractiveSummaries(eligible, detail).filter((summary) => summaryIds.has(summary.block.id));
+  return withSummaries(result, summaries, 'deterministic-diverse-extractive');
 }
 
 export function withGeneratedSummaries(
