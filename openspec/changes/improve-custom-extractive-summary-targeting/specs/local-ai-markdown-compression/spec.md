@@ -3,7 +3,7 @@
 ### Requirement: Deterministic extractive summary fallback
 The system SHALL offer a single-choice **Summarization** setting with **None**, **Browser**, and **Custom** options for an exported page. **None** SHALL produce the complete converted Markdown without summary generation and SHALL make Detail inactive. **Custom** SHALL produce a language-independent deterministic extractive derivative for eligible prose when Detail is below 100. **Browser** SHALL invoke Chrome's local Summarizer only after the user explicitly selected Browser and initiated conversion; if the capability is unavailable, unsupported, declined, cancelled, or fails, the system SHALL produce the Custom derivative instead.
 
-Custom extraction SHALL use the Detail-policy sentence budget and relevance signals, then select source sentences greedily with version-2 MMR scoring of `0.7 × normalized relevance − 0.3 × maximum lexical similarity to a selected sentence` within the same source block, where normalized relevance uses a document-frequency-damped score: each token's raw page-sentence frequency SHALL be divided by `1 + log(documentCount)`, where `documentCount` is the number of distinct source sentences on the page that contain the token. It MUST segment only summarizable prose into source sentences, preserve selected sentences verbatim in source order, exclude provenance, protected, and removable blocks, and retain a source-anchored representation for each non-retained prose block. Custom extraction MUST use no model, dependency, content-bearing network request, language detector, or model provisioning. It MUST use lexical similarity locally, with a character n-gram fallback when word-token overlap is insufficient.
+Custom extraction SHALL use the Detail-policy sentence budget and relevance signals, then select source sentences greedily with version-2 MMR scoring of `0.7 × normalized relevance − 0.3 × maximum lexical similarity to a selected sentence` within the same source block. It MUST segment only summarizable prose into source sentences, preserve selected sentences verbatim in source order, exclude provenance, protected, and removable blocks, and retain a source-anchored representation for each non-retained prose block. Custom extraction MUST use no model, dependency, content-bearing network request, language detector, or model provisioning. It MUST use lexical similarity locally, with a character n-gram fallback when word-token overlap is insufficient.
 
 When Detail is 100, Browser and Custom SHALL retain eligible prose verbatim and SHALL not invoke a model or add a summary. The system SHALL record the requested provider separately from the actual summary origin: `none`, `deterministic-diverse-extractive`, or `local-ai`. A Browser fallback MUST identify `browser` as requested and `deterministic-diverse-extractive` as actual; it MUST NOT be presented as Browser output.
 
@@ -18,10 +18,6 @@ The per-block Custom summary sentence count SHALL be a monotonic non-increasing 
 #### Scenario: Custom extraction avoids redundant sentences
 - **WHEN** a non-retained prose block contains near-duplicate high-relevance sentences and an orthogonal source sentence within its Detail-policy budget
 - **THEN** Custom extraction SHALL select no more than one of the near-duplicate sentences when an orthogonal candidate adds greater non-redundant coverage
-
-#### Scenario: Custom extraction de-prioritises high-frequency-token glue
-- **WHEN** a non-retained prose block contains sentences whose tokens occur across many other source sentences on the page (high document frequency) alongside a candidate whose distinctive tokens occur in few sentences
-- **THEN** Custom extraction SHALL prefer the distinctive-token candidate once document-frequency damping lowers the glue candidate's relevance below the distinctive candidate
 
 #### Scenario: Custom extraction never repeats the application label
 - **WHEN** the Custom provider emits a focused summary across any number of non-retained prose blocks
@@ -39,10 +35,10 @@ The per-block Custom summary sentence count SHALL be a monotonic non-increasing 
 - **WHEN** the user selects Browser or Custom at Detail 100
 - **THEN** the system SHALL retain eligible prose verbatim, SHALL not invoke Chrome Summarizer, and SHALL record no generated summary
 
-#### Scenario: Lower Detail never grows the Custom export's word count
-- **WHEN** a user re-exports the same focused input at two different Detail values both below 100
-- **THEN** the Custom export's measured word count at the lower Detail SHALL be less than or equal to the measured word count at the higher Detail for the same fixed input
-
 #### Scenario: Detail always summarises something
 - **WHEN** a user exports any focused input with the Custom provider at any Detail below 100 and at least one non-retained summarizable block exists
 - **THEN** the Custom export SHALL contain at least one `>` blockquote summary line
+
+#### Scenario: Lower Detail never grows the Custom export's word count
+- **WHEN** a user re-exports the same focused input at two different Detail values both below 100
+- **THEN** the Custom export's measured word count at the lower Detail SHALL be less than or equal to the measured word count at the higher Detail for the same fixed input
