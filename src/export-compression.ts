@@ -15,19 +15,19 @@ const encoder = new TextEncoder();
 
 export function detailPolicy(detail: number): DetailPolicy {
   const normalized = Math.max(0, Math.min(100, Math.round(detail)));
-  const extractiveSentenceRatio = normalized === 100 ? 0 : Math.max(0.1, normalized / 100);
+  const extractiveSentenceRatio = normalized === 100 ? 0 : Math.max(0, Math.min(1, normalized / 100));
   if (normalized === 100) {
-    return { version: 1, detail: normalized, retainRatio: 1, extractiveSentenceRatio, summaryEnabled: false, description: 'Full source detail; no prose is replaced by a summary.' };
+    return { version: 2, detail: normalized, retainRatio: 1, extractiveSentenceRatio, summaryEnabled: false, description: 'Full source detail; no prose is replaced by a summary.' };
   }
-  if (normalized >= 85) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'key-points', description: 'Near source detail with long local key-point summaries.' };
-  if (normalized >= 65) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'tldr', description: 'Detailed sections with long local summaries.' };
-  if (normalized >= 40) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'medium', summaryType: 'key-points', description: 'Balanced detail with medium local key-point summaries.' };
-  if (normalized >= 15) return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'key-points', description: 'Brief detail with short local key-point summaries.' };
-  return { version: 1, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'headline', description: 'Outline detail with headline-oriented local summaries.' };
+  if (normalized >= 85) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'key-points', description: 'Near source detail with long local key-point summaries.' };
+  if (normalized >= 65) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'long', summaryType: 'tldr', description: 'Detailed sections with long local summaries.' };
+  if (normalized >= 40) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'medium', summaryType: 'key-points', description: 'Balanced detail with medium local key-point summaries.' };
+  if (normalized >= 15) return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'key-points', description: 'Brief detail with short local key-point summaries.' };
+  return { version: 2, detail: normalized, retainRatio: normalized / 100, extractiveSentenceRatio, summaryEnabled: true, summaryLength: 'short', summaryType: 'headline', description: 'Outline detail with headline-oriented local summaries.' };
 }
 
 export function countWords(markdown: string): number {
-  return markdown.trim() ? markdown.trim().split(/\s+/u).length : 0;
+  return markdown.trim() ? markdown.trim().split(/\s+/u).filter((token) => token !== '>').length : 0;
 }
 
 export function countBytes(markdown: string): number {
@@ -62,16 +62,29 @@ function frontMatter(metadata: ExportMetadata): string {
   ].join('\n');
 }
 
+function retentionPriority(blocks: readonly MarkdownBlock[]): readonly MarkdownBlock[] {
+  const midpointKeep = Math.floor(blocks.length / 2);
+  const priority: MarkdownBlock[] = [];
+  const selected = new Set<string>();
+  for (let index = 0; index < midpointKeep; index += 1) {
+    const position = midpointKeep <= 1 ? 0 : Math.round((index * (blocks.length - 1)) / (midpointKeep - 1));
+    const block = blocks[position];
+    if (block && !selected.has(block.id)) {
+      priority.push(block);
+      selected.add(block.id);
+    }
+  }
+  for (const block of blocks) {
+    if (!selected.has(block.id)) priority.push(block);
+  }
+  return priority;
+}
+
 function retainedSummarizable(blocks: readonly MarkdownBlock[], retainRatio: number): ReadonlySet<string> {
   const keep = retainRatio === 1 ? blocks.length : Math.floor(blocks.length * retainRatio);
   if (keep === 0) return new Set();
   if (keep >= blocks.length) return new Set(blocks.map((block) => block.id));
-  const selected = new Set<string>();
-  for (let index = 0; index < keep; index += 1) {
-    const position = Math.round((index * (blocks.length - 1)) / Math.max(keep - 1, 1));
-    selected.add(blocks[position]!.id);
-  }
-  return selected;
+  return new Set(retentionPriority(blocks).slice(0, keep).map((block) => block.id));
 }
 
 export function unknownLanguageState(declaredLanguage?: string): LanguageState {
@@ -115,7 +128,7 @@ function resultFromBlocks(
     language,
     generatedSummaryCount: 0,
     summaryChunkCount: 0,
-    policyVersion: 1,
+    policyVersion: 2,
   };
   let markdown = '';
   for (let iteration = 0; iteration < 3; iteration += 1) {
@@ -236,7 +249,7 @@ function relevanceScores(candidates: readonly SourceSentence[], frequency: Reado
 export function extractiveSummaries(blocks: readonly MarkdownBlock[], detail: number): readonly { readonly block: MarkdownBlock; readonly markdown: string }[] {
   const sentences = blocks.flatMap(sourceSentences);
   const policy = detailPolicy(detail);
-  if (!sentences.length || policy.extractiveSentenceRatio === 0) return [];
+  if (!sentences.length || !policy.summaryEnabled) return [];
   const frequency = new Map<string, number>();
   for (const sentence of sentences) {
     for (const token of sentenceTokens(sentence.sentence)) frequency.set(token, (frequency.get(token) ?? 0) + 1);
@@ -289,7 +302,7 @@ export function withSummaries(
       ...bodyBlocks.map((block) => ({ sourceOrder: block.sourceOrder, markdown: block.markdown.trim() })),
       ...generated.map((summary) => ({
         sourceOrder: summary.block.sourceOrder,
-        markdown: `> **Custom extractive summary**\n>\n> ${summary.markdown.trim().replace(/\n/g, '\n> ')}`,
+        markdown: `> ${summary.markdown.trim().replace(/\n/g, '\n> ')}`,
       })),
     ].sort((left, right) => left.sourceOrder - right.sourceOrder);
     body = ordered.map((entry) => entry.markdown).filter(Boolean).join('\n\n');
@@ -320,7 +333,11 @@ export function deterministicExtractiveCompression(
   requestedProvider: SummarizationProvider = 'custom',
 ): CompressionResult {
   const result = deterministicCompression(captured, conversion, mode, detail, language, requestedProvider);
-  return result.metadata.detail === 100 ? result : withSummaries(result, extractiveSummaries(result.summarizableBlocks, detail), 'deterministic-diverse-extractive');
+  if (result.metadata.detail === 100) return result;
+  const eligible = conversion.blocks.filter((block) => block.kind === 'summarizable');
+  const summaryIds = new Set(result.summarizableBlocks.map((block) => block.id));
+  const summaries = extractiveSummaries(eligible, detail).filter((summary) => summaryIds.has(summary.block.id));
+  return withSummaries(result, summaries, 'deterministic-diverse-extractive');
 }
 
 export function withGeneratedSummaries(

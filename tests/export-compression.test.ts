@@ -158,10 +158,23 @@ describe('deterministic compression', () => {
       requestedProvider: 'custom',
       compressionMode: 'custom-extractive',
       summaryOrigin: 'deterministic-diverse-extractive',
+      generatedSummaryCount: expect.any(Number),
+      summaryChunkCount: 0,
+      policyVersion: 2,
     });
+    expect(result.metadata.generatedSummaryCount).toBeGreaterThan(0);
     expect(result.markdown).toContain('requested_provider: custom');
+    expect(result.markdown).toContain('compression_mode: custom-extractive');
     expect(result.markdown).toContain('summary_origin: deterministic-diverse-extractive');
-    expect(result.markdown).toContain('Custom extractive summary');
+    expect(result.markdown).toContain(`generated_summary_count: ${result.metadata.generatedSummaryCount}`);
+    expect(result.markdown).toMatch(/^> .+$/mu);
+    const summaryLines = result.markdown.split('\n').filter((line) => /^> (?!Conversion limitation:)/u.test(line));
+    expect(summaryLines).toHaveLength(result.summarizableBlocks.length);
+    const zeroDetail = deterministicExtractiveCompression(captured, conversion, 'complete', 0, declaredLanguage);
+    const zeroDetailSummaryLines = zeroDetail.markdown.split('\n').filter((line) => /^> (?!Conversion limitation:)/u.test(line));
+    expect(zeroDetail.metadata.generatedSummaryCount).toBeGreaterThan(0);
+    expect(zeroDetailSummaryLines).toHaveLength(zeroDetail.summarizableBlocks.length);
+    expect(result.markdown).not.toContain('Custom extractive summary');
     expect(result.markdown).toContain('https://example.com/guide');
     expect(result.markdown).toContain('```ts');
     expect(result.markdown).not.toContain('Cookie settings');
@@ -170,8 +183,13 @@ describe('deterministic compression', () => {
   it('uses an extractive summary below Detail 100 even for a short prose fixture', () => {
     const result = deterministicExtractiveCompression(captured, conversion, 'complete', 75, declaredLanguage);
 
+    expect(result.metadata).toMatchObject({
+      generatedSummaryCount: expect.any(Number),
+      policyVersion: 2,
+    });
     expect(result.metadata.generatedSummaryCount).toBeGreaterThan(0);
-    expect(result.markdown).toContain('Custom extractive summary');
+    expect(result.markdown).toMatch(/^> .+$/mu);
+    expect(result.markdown).not.toContain('Custom extractive summary');
   });
 
   it('keeps Detail 100 as the source-preserved deterministic result', () => {

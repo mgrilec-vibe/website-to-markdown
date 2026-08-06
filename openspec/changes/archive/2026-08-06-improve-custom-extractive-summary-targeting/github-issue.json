@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 2,
+  "incrementId": "improve-custom-extractive-summary-targeting",
+  "issue": "https://github.com/mgrilec-vibe/website-to-markdown/issues/10",
+  "pullRequest": "https://github.com/mgrilec-vibe/website-to-markdown/pull/11",
+  "branch": "improve-custom-extractive-summary-targeting",
+  "worktree": "/root/projects/website-to-markdown-improve-custom-extractive-summary-targeting",
+  "base": "17feb1988f682370f90c09c53b40561b2a249ab8"
+}
