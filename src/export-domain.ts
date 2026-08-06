@@ -82,6 +82,7 @@ export interface ExportMetadata extends CaptureMetadata {
 export interface CompressionResult {
   readonly markdown: string;
   readonly metadata: ExportMetadata;
+  readonly limitations: readonly string[];
   readonly removedBlockIds: readonly string[];
   readonly summarizableBlocks: readonly MarkdownBlock[];
   readonly blocks: readonly MarkdownBlock[];

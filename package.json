@@ -18,9 +18,7 @@
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
-    "dompurify": "^3.4.12",
     "fflate": "^0.8.3",
-    "marked": "^18.0.7",
     "turndown": "^7.2.4"
   },
   "devDependencies": {

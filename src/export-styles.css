@@ -1,33 +1,51 @@
 :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; line-height: 1.5; }
+html, body, #app { width: 22rem; min-width: 22rem; max-width: 22rem; }
 body { margin: 0; background: Canvas; color: CanvasText; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button { cursor: pointer; padding: .55rem .8rem; border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); border-radius: .4rem; background: ButtonFace; color: ButtonText; }
 button:hover:not(:disabled) { border-color: CanvasText; }
 button:disabled { cursor: wait; opacity: .65; }
-.markdown-result { box-sizing: border-box; min-height: 28rem; overflow: auto; padding: .75rem; border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); border-radius: .4rem; background: Canvas; color: CanvasText; }
- .markdown-result > :first-child { margin-top: 0; }
- .markdown-result > :last-child { margin-bottom: 0; }
- .markdown-result a { color: LinkText; }
- .markdown-result blockquote { margin: 1rem 0; padding-left: 1rem; border-left: .25rem solid color-mix(in srgb, CanvasText 30%, transparent); }
- .markdown-result code { font: .875em/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
- .markdown-result pre { overflow-x: auto; padding: .75rem; border-radius: .4rem; background: color-mix(in srgb, CanvasText 8%, Canvas); }
- .markdown-result pre code { font-size: .875rem; }
- .markdown-result table { width: 100%; border-collapse: collapse; }
- .markdown-result th, .markdown-result td { padding: .4rem .55rem; border: 1px solid color-mix(in srgb, CanvasText 25%, transparent); text-align: left; vertical-align: top; }
- .markdown-resource { color: color-mix(in srgb, CanvasText 65%, transparent); font-style: italic; }
+button.primary { background: #5b6cff; border-color: #5b6cff; color: #fff; font-weight: 600; }
+button.primary:hover:not(:disabled) { background: color-mix(in srgb, #5b6cff 88%, black); border-color: #5b6cff; }
 h1, h2, p { margin-top: 0; }
 .eyebrow { margin-bottom: .2rem; color: #5b6cff; font-size: .8rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
-.export-popup { width: 22rem; padding: 1rem; }
-.export-result { width: min(56rem, calc(100vw - 2rem)); }
+.export-popup { width: 100%; padding: 1rem; box-sizing: border-box; }
 .export-popup h1 { margin: 0; font-size: 1.1rem; }
+.export-popup h2 { margin: 0; font-size: 1rem; }
 .export-popup button { width: 100%; margin-top: .75rem; }
-.export-progress { display: grid; gap: .75rem; min-height: 9rem; align-content: center; }
-.export-progress #status { margin: 0; padding: .75rem; border-left: .25rem solid #5b6cff; background: color-mix(in srgb, #5b6cff 10%, Canvas); }
+.popup-header { margin-bottom: .9rem; }
+.tagline { margin: 0; color: color-mix(in srgb, CanvasText 70%, transparent); font-size: .9rem; }
+.muted { color: color-mix(in srgb, CanvasText 65%, transparent); }
+.export-progress, .export-failure { display: grid; gap: .75rem; min-width: 22rem; min-height: 9rem; align-content: start; }
+.progress-status { margin: 0; padding: .75rem; border-left: .25rem solid #5b6cff; background: color-mix(in srgb, #5b6cff 10%, Canvas); }
 .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .actions button { flex: 1 1 10rem; }
 .link-button { border-color: transparent; background: transparent; color: LinkText; text-decoration: underline; }
+.link-button:hover:not(:disabled) { border-color: transparent; }
 .success { margin: .75rem 0; padding: .75rem; border-left: .25rem solid #25803c; background: color-mix(in srgb, #25803c 10%, Canvas); }
-.notice { padding: .75rem; border-left: .25rem solid #5b6cff; background: color-mix(in srgb, #5b6cff 10%, Canvas); }
+.notice { padding: .75rem; border-left: .25rem solid #5b6cff; background: color-mix(in srgb, #5b6cff 10%, Canvas); white-space: pre-line; }
 .notice.error { border-left-color: #c72c41; background: color-mix(in srgb, #c72c41 10%, Canvas); }
-.final-output article { min-width: 0; }
 [hidden] { display: none !important; }
+.field { display: grid; gap: .3rem; margin-top: .75rem; font-size: .9rem; font-weight: 600; }
+.field select, .field input[type="range"] { width: 100%; }
+.mode-field { display: grid; gap: .4rem; margin: 0 0 .25rem; padding: 0; border: 0; }
+.mode-field legend { margin-bottom: .35rem; font-size: .9rem; font-weight: 600; }
+.segmented-option { display: block; }
+.segmented-option input { position: absolute; opacity: 0; pointer-events: none; }
+.segmented-label { display: block; padding: .5rem .7rem; border: 1px solid color-mix(in srgb, CanvasText 35%, transparent); border-radius: .4rem; cursor: pointer; }
+.segmented-option input:focus-visible + .segmented-label { outline: 2px solid #5b6cff; outline-offset: 2px; }
+.segmented-option input:checked + .segmented-label { border-color: #5b6cff; background: color-mix(in srgb, #5b6cff 12%, Canvas); box-shadow: inset 0 0 0 1px #5b6cff; }
+.segmented-label strong { display: block; font-size: .92rem; }
+.segmented-label small { display: block; color: color-mix(in srgb, CanvasText 65%, transparent); font-weight: 400; }
+.ready-form .actions { margin-top: 1rem; }
+.trust-footer { display: flex; align-items: center; gap: .35rem; margin-top: 1.1rem; color: color-mix(in srgb, CanvasText 60%, transparent); font-size: .78rem; }
+.shield { flex: none; fill: currentColor; }
+.source-card { padding: .7rem .8rem; border: 1px solid color-mix(in srgb, CanvasText 30%, transparent); border-radius: .4rem; background: color-mix(in srgb, CanvasText 5%, Canvas); }
+.source-card h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.source-card .muted { margin: .15rem 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin: .75rem 0; }
+.stat { padding: .55rem .4rem; border: 1px solid color-mix(in srgb, CanvasText 30%, transparent); border-radius: .4rem; text-align: center; }
+.stat-value { display: block; font-weight: 700; font-size: 1rem; }
+.stat-label { display: block; color: color-mix(in srgb, CanvasText 60%, transparent); font-size: .72rem; }
+.receipt-details p { margin: 0 0 .3rem; overflow-wrap: anywhere; font-size: .82rem; }
+.receipt-details .muted:last-child { margin-bottom: .6rem; }

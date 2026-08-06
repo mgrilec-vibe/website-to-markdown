@@ -33,7 +33,7 @@ Users need a local, inspectable export that accurately represents the meaningful
 ## Product Principles
 
 1. **Faithful meaning over visual fidelity.** Headings, prose, lists, quotations, code, tables, links, image descriptions, and document order matter. Pixels, layout containers, and decoration do not.
-2. **User control before automation.** The user initiates an export and can inspect the Markdown before sharing it.
+2. **User control before automation.** The user explicitly configures and initiates each export before any capture or conversion happens.
 3. **Provenance is part of the document.** Every export identifies its source URL, title, and capture time so downstream LLM output can be traced back to the original page.
 4. **Local by default.** Page content is processed in the browser and is not sent to a service by the extension.
 5. **Useful beats exhaustive.** Remove page chrome and repetitive boilerplate while retaining content that changes the meaning of the page.
@@ -41,14 +41,13 @@ Users need a local, inspectable export that accurately represents the meaningful
 
 ## Product Experience
 
-From any supported page, the user opens the extension and chooses **Export as Markdown**. The extension captures the current page, derives its main content, converts that content into Markdown, and presents a preview.
+From any supported page, the user opens the extension and chooses export options for one page—**Focused article** or **Complete page**, a summarization provider, and a Detail level—then activates **Build Markdown**. The extension captures the current page, derives its main content, converts that content into Markdown, and applies the saved automatic-copy preference.
 
-The preview lets the user:
+The completion receipt lets the user:
 
-- Review the generated document before it leaves the browser.
-- Copy the Markdown to the clipboard.
-- Download it as a `.md` file with a safe, descriptive filename.
-- Switch between a focused main-content export and a complete-page export when the focused extraction misses relevant material.
+- Confirm the immutable source title, URL, and capture time.
+- See measured words, Markdown size, an approximate token estimate, the selected mode, and the actual summary origin.
+- Copy the Markdown to the clipboard or download it as a `.md` file with a safe, descriptive filename.
 
 The downloaded document begins with lightweight front matter that records the source title, canonical URL when available, capture timestamp, and export mode. The body is readable Markdown suitable for pasting into an LLM or storing in a notes repository.
 
@@ -77,7 +76,7 @@ An export SHOULD:
 
 - Chrome extension support for the active, user-visible tab.
 - Extraction of main article or document content with a complete-page fallback.
-- Preview, copy, and `.md` download workflows.
+- Copy and `.md` download workflows with an explicit per-export mode choice.
 - Clean conversion of common document structures: prose, headings, lists, tables, quotations, links, images, and code.
 - Source metadata and an explicit, human-readable notice for conversion limitations.
 - Clear handling of logged-in and dynamically rendered pages using the content available in the current tab.

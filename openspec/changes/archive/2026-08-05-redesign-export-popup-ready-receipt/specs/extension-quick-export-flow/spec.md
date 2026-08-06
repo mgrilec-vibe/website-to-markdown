@@ -1,10 +1,4 @@
-# Extension Quick Export Flow
-
-## Purpose
-
-Provide a compact, local export flow with an explicit READY configuration, visible progress, automatic copying, measured results, and recovery actions.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Quick export lifecycle
 The extension SHALL provide a compact popup flow that opens in a READY state without capturing the active tab. READY SHALL initialize Focused article, the saved summarization provider and Detail defaults, and a truthful explanation of the saved automatic-copy behavior; it SHALL also permit Complete page as an export-local mode. The extension SHALL begin capture only after the user activates **Build Markdown**, using an immutable snapshot of the READY selections. From that action until completion, the popup SHALL visibly identify the current phase as capturing, converting, locally summarizing when Browser summarization is selected, or copying. The flow MUST remain local to the extension and MUST NOT send page-derived content to a service.

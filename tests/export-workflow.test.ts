@@ -175,6 +175,33 @@ describe('provider result workflow', () => {
     expect(destroy).toHaveBeenCalledTimes(2);
   });
 
+  it('produces Complete output while limiting Browser summary input to the focused content unit', async () => {
+    const measuredInputs: string[] = [];
+    const adapter: BrowserSummaryAdapter = {
+      htmlParser: linkedomHtmlParser,
+      checkCapability: async () => ({ detector: 'available', summarizer: 'available' }),
+      createLanguageDetector: async () => ({ detect: async () => [] }),
+      detectEligibleLanguage: async () => ({ origin: 'detected', primaryLanguage: 'en', confidence: 1, alternatives: [], supported: true }),
+      createSummarizer: async () => ({
+        inputQuota: 100_000,
+        measureInputUsage: async (text: string) => { measuredInputs.push(text); return text.length; },
+        summarize: async () => 'Safety evidence supports the release decision.',
+      }),
+      summarizeBlocks,
+    };
+
+    const result = await createFinalExport(focusedCaptured, 'complete', 40, 'browser', adapter);
+
+    expect(result.result.metadata).toMatchObject({ exportMode: 'complete', summaryOrigin: 'local-ai', generatedSummaryCount: 1 });
+    expect(result.result.markdown).toContain('export_mode: complete');
+    expect(result.result.markdown).toContain('## Summary');
+    expect(result.result.markdown).toContain('Safety evidence supports the release decision.');
+    expect(measuredInputs[0]).toContain('Safety evidence supports the release decision.');
+    expect(measuredInputs[0]).not.toContain('Navigation chrome');
+    expect(measuredInputs[0]).not.toContain('Footer links');
+    expect(measuredInputs[0]).not.toContain('Related links');
+  });
+
   it('returns deterministic focused Custom output when quota measurement or generation fails', async () => {
     for (const failure of ['quota', 'generation'] as const) {
       const adapter: BrowserSummaryAdapter = {

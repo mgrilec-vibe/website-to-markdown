@@ -15,11 +15,11 @@ void loadExportPreferences().then((preferences) => {
     captureActiveTab: async () => chrome.runtime.sendMessage({ type: 'export-active-tab' }) as Promise<{ id?: string; error?: string }>,
     loadExport,
     deriveReadabilityFocus: (captured) => deriveReadabilityFocus(captured, browserHtmlParser),
-    createFinalExport: (captured, selectedPreferences, onProgress) => createFinalExport(
+    createFinalExport: (captured, selection, onProgress) => createFinalExport(
       captured,
-      'focused',
-      selectedPreferences.detail,
-      selectedPreferences.provider,
+      selection.mode,
+      selection.detail,
+      selection.provider,
       undefined,
       onProgress,
     ),

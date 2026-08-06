@@ -138,6 +138,7 @@ function resultFromBlocks(
   return {
     markdown,
     metadata,
+    limitations: [...limitations],
     removedBlockIds: removable.map((block) => block.id),
     summarizableBlocks,
     blocks: visible,
@@ -321,7 +322,7 @@ export function withSummaries(
     markdown = `${frontMatter(metadata)}${body}\n`;
     metadata = { ...metadata, words: countWords(markdown), bytes: countBytes(markdown) };
   }
-  return { ...result, markdown, metadata };
+  return { ...result, markdown, metadata, limitations: [...result.limitations] };
 }
 
 export function deterministicExtractiveCompression(

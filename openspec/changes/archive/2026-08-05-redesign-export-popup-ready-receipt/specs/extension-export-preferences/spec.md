@@ -1,10 +1,4 @@
-# Extension Export Preferences
-
-## Purpose
-
-Persist export defaults, seed export-local popup configuration, and provide an extension-owned settings entry point for managing them.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Persistent export defaults
 The extension SHALL persist user-selected defaults for summarization provider, Detail level, and whether a completed export attempts automatic clipboard copying. Stored preferences MUST use extension-owned local storage separate from transient captured-page records. When the extension action opens, READY SHALL initialize Focused article plus the saved provider and Detail defaults and SHALL explain the saved automatic-copy behavior. READY SHALL permit Focused article or Complete page, provider, and Detail changes for the current export without persisting those changes. Complete page SHALL be an export-local selection and MUST NOT become a persisted default.
