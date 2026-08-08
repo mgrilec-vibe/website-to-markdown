@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 2,
+  "incrementId": "conversion-workflow-step-indicator",
+  "issue": "https://github.com/mgrilec-vibe/website-to-markdown/issues/12",
+  "pullRequest": "https://github.com/mgrilec-vibe/website-to-markdown/pull/13",
+  "branch": "conversion-workflow-step-indicator",
+  "worktree": "/root/projects/website-to-markdown-conversion-workflow-step-indicator",
+  "base": "1c507101c823312ac30a0e682033578cfd7d8a1c"
+}
