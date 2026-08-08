@@ -18,6 +18,11 @@ h1, h2, p { margin-top: 0; }
 .muted { color: color-mix(in srgb, CanvasText 65%, transparent); }
 .export-progress, .export-failure { display: grid; gap: .75rem; min-width: 22rem; min-height: 9rem; align-content: start; }
 .progress-status { margin: 0; padding: .75rem; border-left: .25rem solid #5b6cff; background: color-mix(in srgb, #5b6cff 10%, Canvas); }
+.step-trail { display: flex; gap: .25rem; margin: 0 0 .75rem; padding: 0; list-style: none; }
+.step { flex: 1 1 0; min-width: 0; padding: .3rem .2rem; border-radius: .3rem; text-align: center; font-size: .72rem; font-weight: 600; color: color-mix(in srgb, CanvasText 45%, transparent); background: color-mix(in srgb, CanvasText 8%, transparent); }
+.step.active { color: #5b6cff; background: color-mix(in srgb, #5b6cff 14%, Canvas); box-shadow: inset 0 0 0 1px #5b6cff; }
+.step.done { color: color-mix(in srgb, CanvasText 80%, transparent); background: color-mix(in srgb, #5b6cff 10%, Canvas); }
+.step.pending { color: color-mix(in srgb, CanvasText 40%, transparent); }
 .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .actions button { flex: 1 1 10rem; }
 .link-button { border-color: transparent; background: transparent; color: LinkText; text-decoration: underline; }

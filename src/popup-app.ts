@@ -33,8 +33,8 @@ type CopyState = 'ready' | 'copying' | 'copied' | 'copy-failed';
 
 type PopupState =
   | { readonly kind: 'ready'; readonly draft: PopupExportSelection }
-  | { readonly kind: 'processing'; readonly snapshot: BuildSnapshot; readonly message: string }
-  | { readonly kind: 'copying'; readonly snapshot: BuildSnapshot; readonly finalExport: FinalExport }
+  | { readonly kind: 'processing'; readonly snapshot: BuildSnapshot; readonly message: string; readonly currentStep: WorkflowStep }
+  | { readonly kind: 'copying'; readonly snapshot: BuildSnapshot; readonly finalExport: FinalExport; readonly currentStep: WorkflowStep }
   | { readonly kind: 'done'; readonly snapshot: BuildSnapshot; readonly finalExport: FinalExport; readonly copyState: CopyState; readonly actionError?: string }
   | { readonly kind: 'failed'; readonly snapshot: BuildSnapshot; readonly message: string };
 
@@ -57,6 +57,38 @@ function formatBytes(bytes: number): string {
 const SHIELD = '<svg class="shield" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M8 1.2 12.8 3v4.2c0 3.3-2 5.7-4.8 6.8C5.2 12.9 3.2 10.5 3.2 7.2V3L8 1.2z"/></svg>';
 
 const TRUST_FOOTER = `<footer class="trust-footer">${SHIELD} Runs locally in your browser</footer>`;
+
+type WorkflowStep = 'capturing' | 'converting' | 'summarizing' | 'copying';
+
+const STEP_LABELS: Readonly<Record<WorkflowStep, string>> = {
+  capturing: 'Capture',
+  converting: 'Convert',
+  summarizing: 'Summarize',
+  copying: 'Copy',
+};
+
+const STEP_MESSAGES: Readonly<Record<WorkflowStep, string>> = {
+  capturing: 'Capturing the active page locally…',
+  converting: 'Converting to Markdown…',
+  summarizing: 'Summarizing locally…',
+  copying: 'Copying Markdown…',
+};
+
+function stepTrail(currentStep: WorkflowStep, summarizing: boolean): string {
+  const steps: readonly WorkflowStep[] = summarizing
+    ? ['capturing', 'converting', 'summarizing', 'copying']
+    : ['capturing', 'converting', 'copying'];
+  const currentIndex = steps.indexOf(currentStep);
+  return `
+    <ol class="step-trail" aria-label="Conversion steps">
+      ${steps.map((step, index) => {
+        const stateClass = index < currentIndex ? 'done' : index === currentIndex ? 'active' : 'pending';
+        const current = index === currentIndex ? ' aria-current="step"' : '';
+        return `<li class="step ${stateClass}"${current}>${STEP_LABELS[step]}</li>`;
+      }).join('')}
+    </ol>
+  `;
+}
 
 
 function requireSnapshot(state: PopupState): BuildSnapshot {
@@ -149,7 +181,8 @@ export function mountExportPopup(
       state = {
         kind: 'processing',
         snapshot: { mode, provider: provider.value as SummarizationProvider, detail: Number(detail.value), autoCopy: preferences.autoCopy },
-        message: 'Capturing the active page locally…',
+        message: STEP_MESSAGES.capturing,
+        currentStep: 'capturing',
       };
       render();
       void runExport(state.snapshot);
@@ -159,13 +192,14 @@ export function mountExportPopup(
     });
   };
 
-  const renderProcessing = (message: string): void => {
+  const renderProcessing = (message: string, currentStep: WorkflowStep, summarizing: boolean): void => {
     root.innerHTML = `
       <section class="export-popup export-progress">
         <header class="popup-header">
           <p class="eyebrow">Website to Markdown</p>
           <h1>Building Markdown</h1>
         </header>
+        ${stepTrail(currentStep, summarizing)}
         <p id="status" class="progress-status" role="status" aria-live="polite">${message}</p>
         <button id="settings" class="link-button" type="button">Settings</button>
         ${TRUST_FOOTER}
@@ -196,7 +230,7 @@ export function mountExportPopup(
     const snapshot = state.kind === 'failed' ? state.snapshot : null;
     root.querySelector<HTMLButtonElement>('#retry')!.addEventListener('click', () => {
       if (!snapshot) return;
-      state = { kind: 'processing', snapshot, message: 'Capturing the active page locally…' };
+      state = { kind: 'processing', snapshot, message: STEP_MESSAGES.capturing, currentStep: 'capturing' };
       render();
       void runExport(snapshot);
     });
@@ -210,7 +244,7 @@ export function mountExportPopup(
     });
   };
 
-  const renderResult = (finalExport: FinalExport, copyState: CopyState, actionError?: string): void => {
+  const renderResult = (finalExport: FinalExport, copyState: CopyState, actionError?: string, currentStep?: WorkflowStep): void => {
     const { result, capability, language, browserFailure } = finalExport;
     const metadata = result.metadata;
     const copied = copyState === 'copied';
@@ -222,6 +256,7 @@ export function mountExportPopup(
           <p class="eyebrow">Website to Markdown</p>
           <h1>Markdown ready</h1>
         </header>
+        ${currentStep ? stepTrail(currentStep, metadata.summaryOrigin === 'local-ai') : ''}
         <section class="source-card">
           <h2 id="source-title"></h2>
           <p id="source-host" class="muted"></p>
@@ -278,7 +313,7 @@ export function mountExportPopup(
       return `Conversion limitation: ${receiptNotice}`;
     }).join('\n');
     root.querySelector<HTMLElement>('#action-error')!.textContent = actionError ?? '';
-    root.querySelector<HTMLButtonElement>('#copy')!.textContent = copyState === 'copying' ? 'Copying Markdown…' : 'Copy Markdown';
+    root.querySelector<HTMLButtonElement>('#copy')!.textContent = copyState === 'copying' ? STEP_MESSAGES.copying : 'Copy Markdown';
     root.querySelector<HTMLButtonElement>('#copy')!.addEventListener('click', () => { void copyFinal(finalExport); });
     root.querySelector<HTMLButtonElement>('#download')!.addEventListener('click', async () => {
       try {
@@ -294,8 +329,8 @@ export function mountExportPopup(
 
   const copyFinal = async (finalExport: FinalExport): Promise<void> => {
     const snapshot = requireSnapshot(state);
-    state = { kind: 'copying', snapshot, finalExport };
-    renderResult(finalExport, 'copying');
+    state = { kind: 'copying', snapshot, finalExport, currentStep: 'copying' };
+    renderResult(finalExport, 'copying', undefined, 'copying');
     try {
       await dependencies.copyFinalMarkdown(finalExport.result.markdown);
       state = { kind: 'done', snapshot, finalExport, copyState: 'copied' };
@@ -312,11 +347,12 @@ export function mountExportPopup(
       if (response.error || !response.id) throw new Error(response.error || 'Capture did not return an export.');
       const stored = await dependencies.loadExport(response.id);
       if (!stored) throw new Error('This temporary export is no longer available. Capture the page again.');
-      state = { kind: 'processing', snapshot, message: 'Converting to Markdown…' };
+      state = { kind: 'processing', snapshot, message: STEP_MESSAGES.converting, currentStep: 'converting' };
       render();
       const captured = dependencies.deriveReadabilityFocus(stored.captured);
       const finalExport = await dependencies.createFinalExport(captured, snapshot, (progress) => {
-        state = { kind: 'processing', snapshot, message: progress === 'summarizing' ? 'Summarizing locally…' : 'Converting to Markdown…' };
+        const step: WorkflowStep = progress === 'summarizing' ? 'summarizing' : 'converting';
+        state = { kind: 'processing', snapshot, message: STEP_MESSAGES[step], currentStep: step };
         render();
       });
       if (snapshot.autoCopy) {
@@ -337,10 +373,10 @@ export function mountExportPopup(
         renderReady(state.draft);
         break;
       case 'processing':
-        renderProcessing(state.message);
+        renderProcessing(state.message, state.currentStep, state.currentStep === 'summarizing');
         break;
       case 'copying':
-        renderResult(state.finalExport, 'copying');
+        renderResult(state.finalExport, 'copying', undefined, state.currentStep);
         break;
       case 'done':
         renderResult(state.finalExport, state.copyState, state.actionError);

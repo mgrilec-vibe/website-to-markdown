@@ -48,6 +48,20 @@ const browserFallback: FinalExport = {
   language: { origin: 'unknown', alternatives: [], supported: false },
   browserFailure: 'Chrome Summarizer is unavailable.',
 };
+const localAiExport: FinalExport = (() => {
+  const { browserFailure: _omitted, ...rest } = browserFallback;
+  return {
+    ...rest,
+    result: {
+      ...rest.result,
+      metadata: {
+        ...rest.result.metadata,
+        compressionMode: 'local-ai-assisted',
+        summaryOrigin: 'local-ai',
+      },
+    },
+  };
+})();
 
 function popup(root: HTMLElement, overrides: Partial<PopupDependencies> = {}, options = preferences): PopupDependencies {
   const dependencies: PopupDependencies = {
@@ -286,4 +300,122 @@ describe('ready export popup workflow', () => {
     expect(root.querySelector('#source-title')!.textContent).toBe('Popup fixture');
     expect(root.querySelectorAll('.markdown-result')).toHaveLength(0);
   });
+
+  it('advances the step trail from capturing to converting to copying with completed steps distinct', async () => {
+    const { document: doc } = document();
+    const root = doc.querySelector<HTMLElement>('#app')!;
+    let resolveCapture: (value: { id?: string; error?: string }) => void = () => undefined;
+    let resolveExport: (result: FinalExport) => void = () => undefined;
+    let reportProgress: (progress: 'converting' | 'summarizing') => void = () => undefined;
+    let resolveCopy: () => void = () => undefined;
+    const captureActiveTab = vi.fn(() => new Promise<{ id?: string; error?: string }>((resolve) => {
+      resolveCapture = resolve;
+    }));
+    const createFinalExport = vi.fn((
+      _captured: CapturedPage,
+      _selection: PopupExportSelection,
+      onProgress: (progress: 'converting' | 'summarizing') => void,
+    ) => {
+      reportProgress = onProgress;
+      return new Promise<FinalExport>((resolve) => { resolveExport = resolve; });
+    });
+    const copyFinalMarkdown = vi.fn(() => new Promise<void>((resolve) => { resolveCopy = resolve; }));
+    popup(root, { captureActiveTab, createFinalExport, copyFinalMarkdown });
+    build(root, {});
+
+    await vi.waitFor(() => expect(captureActiveTab).toHaveBeenCalledTimes(1));
+    const capturingSteps = root.querySelectorAll<HTMLElement>('.step-trail .step');
+    expect(capturingSteps).toHaveLength(3);
+    expect(capturingSteps[0]!.textContent).toBe('Capture');
+    expect(capturingSteps[0]!.classList.contains('active')).toBe(true);
+    expect(capturingSteps[1]!.classList.contains('pending')).toBe(true);
+    expect(capturingSteps[2]!.classList.contains('pending')).toBe(true);
+    expect(root.querySelector('#status')!.textContent).toContain('Capturing the active page locally');
+
+    resolveCapture({ id: 'export-1' });
+    await vi.waitFor(() => expect(root.textContent).toContain('Converting to Markdown'));
+    const convertingSteps = root.querySelectorAll<HTMLElement>('.step-trail .step');
+    expect(convertingSteps).toHaveLength(3);
+    expect(convertingSteps[0]!.classList.contains('done')).toBe(true);
+    expect(convertingSteps[1]!.classList.contains('active')).toBe(true);
+    expect(convertingSteps[2]!.classList.contains('pending')).toBe(true);
+
+    resolveExport(browserFallback);
+    await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledWith(markdown));
+    const copyingSteps = root.querySelectorAll<HTMLElement>('.step-trail .step');
+    expect(copyingSteps).toHaveLength(3);
+    expect(copyingSteps[0]!.classList.contains('done')).toBe(true);
+    expect(copyingSteps[1]!.classList.contains('done')).toBe(true);
+    expect(copyingSteps[2]!.classList.contains('active')).toBe(true);
+    expect(copyingSteps[2]!.getAttribute('aria-current')).toBe('step');
+
+    resolveCopy();
+    await vi.waitFor(() => expect(root.textContent).toContain('Copied to clipboard.'));
+  });
+
+  it('pins the three-step shape when local summarization is not invoked', async () => {
+    const { document: doc } = document();
+    const root = doc.querySelector<HTMLElement>('#app')!;
+    let resolveCopy: () => void = () => undefined;
+    const createFinalExport = vi.fn(async () => browserFallback);
+    const copyFinalMarkdown = vi.fn(() => new Promise<void>((resolve) => { resolveCopy = resolve; }));
+    popup(root, { createFinalExport, copyFinalMarkdown });
+    build(root, {});
+
+    await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledWith(markdown));
+    const steps = root.querySelectorAll<HTMLElement>('.step-trail .step');
+    expect(steps).toHaveLength(3);
+    expect(steps[0]!.textContent).toBe('Capture');
+    expect(steps[1]!.textContent).toBe('Convert');
+    expect(steps[2]!.textContent).toBe('Copy');
+    expect(root.querySelector('.step-trail')!.textContent).not.toContain('Summarize');
+
+    resolveCopy();
+    await vi.waitFor(() => expect(root.textContent).toContain('Copied to clipboard.'));
+  });
+
+  it('shows the summarizing step when the export reports summarizing', async () => {
+    const { document: doc } = document();
+    const root = doc.querySelector<HTMLElement>('#app')!;
+    let resolveExport: (result: FinalExport) => void = () => undefined;
+    let reportProgress: (progress: 'converting' | 'summarizing') => void = () => undefined;
+    let resolveCopy: () => void = () => undefined;
+    const createFinalExport = vi.fn((
+      _captured: CapturedPage,
+      _selection: PopupExportSelection,
+      onProgress: (progress: 'converting' | 'summarizing') => void,
+    ) => {
+      reportProgress = onProgress;
+      return new Promise<FinalExport>((resolve) => { resolveExport = resolve; });
+    });
+    const copyFinalMarkdown = vi.fn(() => new Promise<void>((resolve) => { resolveCopy = resolve; }));
+    popup(root, { createFinalExport, copyFinalMarkdown });
+    build(root, {});
+
+    await vi.waitFor(() => expect(root.textContent).toContain('Converting to Markdown'));
+    const convertingSteps = root.querySelectorAll<HTMLElement>('.step-trail .step');
+    expect(convertingSteps).toHaveLength(3);
+    expect(convertingSteps[1]!.classList.contains('active')).toBe(true);
+
+    reportProgress('summarizing');
+    await vi.waitFor(() => expect(root.textContent).toContain('Summarizing locally'));
+    const summarizingSteps = root.querySelectorAll<HTMLElement>('.step-trail .step');
+    expect(summarizingSteps).toHaveLength(4);
+    expect(summarizingSteps[0]!.classList.contains('done')).toBe(true);
+    expect(summarizingSteps[1]!.classList.contains('done')).toBe(true);
+    expect(summarizingSteps[2]!.textContent).toBe('Summarize');
+    expect(summarizingSteps[2]!.classList.contains('active')).toBe(true);
+    expect(summarizingSteps[3]!.classList.contains('pending')).toBe(true);
+
+    resolveExport(localAiExport);
+    await vi.waitFor(() => expect(copyFinalMarkdown).toHaveBeenCalledWith(markdown));
+    const copyingSteps = root.querySelectorAll<HTMLElement>('.step-trail .step');
+    expect(copyingSteps).toHaveLength(4);
+    expect(copyingSteps[2]!.classList.contains('done')).toBe(true);
+    expect(copyingSteps[3]!.classList.contains('active')).toBe(true);
+
+    resolveCopy();
+    await vi.waitFor(() => expect(root.textContent).toContain('Copied to clipboard.'));
+  });
+
 });
