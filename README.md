@@ -6,12 +6,20 @@ A local-first Chrome extension that converts the active tab into Markdown. It ca
 
 - Capture the active `http:` or `https:` page with source title, URL, and capture time.
 - Open the popup to a READY configuration: choose **Focused article** or **Complete page**, a summarization provider, and a Detail level, then build Markdown for that one export.
-- Choose **None**, **Custom extractive**, or **Browser local AI** summarization. Browser local AI falls back to the deterministic custom extractor when unavailable.
+- Choose **None**, **Custom extractive**, or **Browser local AI** summarization. Browser local AI falls back to the deterministic custom extractor when unavailable or when generated output fails source-grounding checks.
 - Set a Detail level from 0–100 for summarized exports. Detail 100 preserves eligible prose without generating a summary.
 - Receive a compact completion receipt with source identity, measured words and Markdown size, an estimated token count, and diagnostics; then copy or download the exact Markdown result.
 - Save the summarization provider, Detail level, and automatic-copy preference in extension settings.
 
 Protected Markdown structures—source provenance, headings, link destinations, code, tables, quotations, and conversion notices—remain verbatim in summarized exports. Canvas content, protected or cross-origin frames, and inaccessible browser pages may not be represented completely.
+
+## Summarization quality
+
+Custom summarization is document-aware rather than paragraph-local. It builds heading-aware sentence and section graphs, applies sparse lexical centrality, prioritizes informative blocks for retention, and selects extractive evidence with global coverage and redundancy control. Selected text always comes verbatim from the captured page.
+
+Browser local AI receives focused content with explicit Markdown section structure. When the source exceeds the active model quota, graph-guided compaction preserves important sections before chunking. Each generated map, reduction, and final summary is checked against its source evidence; unsupported numbers, links, or code identifiers trigger the deterministic Custom fallback.
+
+See [Summarization architecture](docs/summarization-architecture.md) for the design, safeguards, and quality gates.
 
 ## Install an unpacked build
 
@@ -44,7 +52,7 @@ This smoke exercises `activeTab`, `chrome.scripting`, popup rendering, and expor
 
 ## Local AI behavior
 
-Browser summarization uses Chrome's built-in local Summarizer API only after you select it and start an export. Chrome may require supported hardware, sufficient storage, or an explicit model download. If Chrome cannot provide a local summary, Website to Markdown completes the export with its deterministic custom extractor and labels the actual result origin.
+Browser summarization uses Chrome's built-in local Summarizer API only after you select it and start an export. Chrome may require supported hardware, sufficient storage, or an explicit model download. If Chrome cannot provide a grounded local summary, Website to Markdown completes the export with its deterministic custom extractor and labels the actual result origin.
 
 The extension has no host permissions and does not use accounts, API keys, remote configuration, telemetry, or content-bearing network requests.
 
@@ -52,6 +60,7 @@ The extension has no host permissions and does not use accounts, API keys, remot
 
 ```sh
 npm test
+npm run test:summarization
 npm run typecheck
 npm run build
 npm run zip
