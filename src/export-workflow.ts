@@ -5,6 +5,7 @@ import {
   detectEligibleLanguage,
   normalizeSummaryText,
   summarizeBlocks,
+  validateSummaryGrounding,
   type LanguageDetectorSession,
   type LocalAiCreateOptions,
   type LocalSummaryOutput,
@@ -74,10 +75,13 @@ export function createFocusedSummarySource(conversion: MarkdownConversion): Focu
   }
   if (current.length > 0) grouped.push(current);
   const sectionRecords = grouped.map((section) => {
-    const markdown = section.map((block) => normalizeSummaryText(block.markdown)).filter(Boolean).join('\n\n');
-    const lines = markdown.split('\n').map((line) => line.trim()).filter(Boolean);
-    const heading = lines[0] ?? '';
-    return { section, markdown, heading, hasSubstantiveText: lines.length > 1 || !/^#{1,6}\s/u.test(section[0]?.markdown.trim() ?? '') };
+    const firstMarkdown = section[0]?.markdown.trim() ?? '';
+    const headingMatch = /^#{1,6}\s+(.+)$/mu.exec(firstMarkdown);
+    const heading = headingMatch ? normalizeSummaryText(headingMatch[1] ?? '') : '';
+    const contentBlocks = headingMatch ? section.slice(1) : section;
+    const body = contentBlocks.map((block) => normalizeSummaryText(block.markdown)).filter(Boolean).join('\n\n');
+    const markdown = heading ? `## ${heading}\n\n${body}` : body;
+    return { section, markdown, heading, hasSubstantiveText: Boolean(body.trim()) };
   });
   const sections = sectionRecords
     .filter((record) => !SECONDARY_SECTION_HEADINGS.test(record.heading) && record.hasSubstantiveText)
@@ -187,10 +191,11 @@ export async function createFinalExport(
     return customFallback(captured, conversion, mode, detail, language, capability, browserFailure);
   }
 
+  let detector: LanguageDetectorSession | undefined;
   let session: SummarizerSession | undefined;
   let currentLanguage = language;
   try {
-    const detector = await adapter.createLanguageDetector();
+    detector = await adapter.createLanguageDetector();
     const summaryConversion = convertCapturedPage(captured, 'focused', adapter.htmlParser);
     const source = createFocusedSummarySource(summaryConversion);
     if (!source.blocks.length) {
@@ -202,11 +207,30 @@ export async function createFinalExport(
       return customFallback(captured, conversion, mode, detail, detectedLanguage, capability, detectedLanguage.warning ?? 'Chrome local summarization does not support this page language.');
     }
     const baseline = deterministicCompression(captured, conversion, mode, detail, detectedLanguage, 'browser');
-    const sharedContext = `This is focused primary content from the page titled "${captured.metadata.title}". The audience is a reader who wants a clear summary of the page's subject.`;
-    const requestContext = 'Summarize the primary content. Emphasize the main behavior, important concepts, parameters, results, errors, and cautions. Ignore navigation, footer links, related-page indexes, and implementation metadata.';
+    const sharedContext = [
+      `This is the focused primary content from the page titled "${captured.metadata.title}".`,
+      'The input is organized under Markdown section headings; use that hierarchy to preserve document structure.',
+      'Use the supplied page text as the only authority.',
+      'Preserve exact numbers, versions, API names, conditions, errors, warnings, and limitations.',
+      'Do not invent claims, links, code identifiers, causes, or recommendations.',
+    ].join(' ');
+    const requestContext = [
+      'Produce a coherent summary of the primary content, ordered by document-wide importance rather than source position alone.',
+      'Treat section headings as structural labels, not as unsupported claims.',
+      'Cover distinct major sections when they add unique information.',
+      'Prefer concrete behavior, parameters, results, errors, trade-offs, and cautions over framing or repeated prose.',
+      'Use only statements supported by the source and preserve qualifiers such as may, must, only, and except.',
+      'Ignore navigation, footer links, related-page indexes, boilerplate, and implementation metadata.',
+    ].join(' ');
     session = await adapter.createSummarizer(detailPolicy(detail), detectedLanguage, { sharedContext });
     onProgress?.('summarizing');
     const summary = await adapter.summarizeBlocks(session, source.blocks, requestContext);
+    const generated = summary.summaries[0];
+    if (!generated) throw new Error('Chrome local summarization returned no summary.');
+    const grounding = validateSummaryGrounding(generated.markdown, source.text);
+    if (!grounding.supported) {
+      throw new Error(`Chrome local summary failed grounding checks: ${grounding.reason ?? 'unsupported output'}`);
+    }
     return {
       result: withGeneratedSummaries(
         { ...baseline, metadata: { ...baseline.metadata, language: detectedLanguage } },
@@ -221,5 +245,6 @@ export async function createFinalExport(
     return customFallback(captured, conversion, mode, detail, currentLanguage, { ...capability, summarizer: 'failed', summarizerError: browserFailure }, browserFailure);
   } finally {
     session?.destroy?.();
+    detector?.destroy?.();
   }
 }
