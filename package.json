@@ -10,6 +10,7 @@
     "build:benchmark": "wxt build --config wxt.config.benchmark.ts --browser chrome",
     "zip": "wxt zip --browser chrome",
     "test": "vitest run",
+    "test:summarization": "vitest run tests/summarization-quality.test.ts tests/extractive-relevance.test.ts tests/export-compression.test.ts tests/export-ai.test.ts",
     "test:watch": "vitest",
     "typecheck": "wxt prepare && tsc --noEmit",
     "benchmark:conversion": "CONVERSION_BENCHMARK=1 vitest run tests/conversion-benchmark.test.ts",
