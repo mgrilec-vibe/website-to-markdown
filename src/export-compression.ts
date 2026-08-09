@@ -236,36 +236,73 @@ function lexicalSimilarity(left: SourceSentence, right: SourceSentence): number 
   return sentenceSimilarity(left.sentence, right.sentence);
 }
 
-function relevanceScores(candidates: readonly SourceSentence[], frequency: ReadonlyMap<string, number>): ReadonlyMap<SourceSentence, number> {
-  const raw = candidates.map((candidate) => {
-    const tokens = sentenceTokens(candidate.sentence);
-    const frequencyScore = tokens.reduce((total, token) => total + (frequency.get(token) ?? 0), 0) / Math.max(tokens.length, 1);
-    return { candidate, score: frequencyScore + (candidate.blockSentenceIndex === 0 ? 0.25 : 0) + 1 / (1 + candidate.sourceOrder) };
-  });
-  const minimum = Math.min(...raw.map(({ score }) => score));
-  const maximum = Math.max(...raw.map(({ score }) => score));
-  return new Map(raw.map(({ candidate, score }) => [candidate, maximum === minimum ? 1 : (score - minimum) / (maximum - minimum)]));
+function documentFrequencies(sentences: readonly SourceSentence[]): ReadonlyMap<string, number> {
+  const frequency = new Map<string, number>();
+  for (const sentence of sentences) {
+    for (const token of sentenceTokens(sentence.sentence)) frequency.set(token, (frequency.get(token) ?? 0) + 1);
+  }
+  return frequency;
+}
+
+function idf(token: string, sentenceCount: number, frequency: ReadonlyMap<string, number>): number {
+  return Math.log((sentenceCount + 1) / ((frequency.get(token) ?? 0) + 1)) + 1;
+}
+
+function weightedVector(sentence: SourceSentence, sentenceCount: number, frequency: ReadonlyMap<string, number>): ReadonlyMap<string, number> {
+  return new Map(sentenceTokens(sentence.sentence).map((token) => [token, idf(token, sentenceCount, frequency)]));
+}
+
+function centroid(vectors: readonly ReadonlyMap<string, number>[]): ReadonlyMap<string, number> {
+  const result = new Map<string, number>();
+  for (const vector of vectors) {
+    for (const [token, weight] of vector) result.set(token, (result.get(token) ?? 0) + weight / Math.max(vectors.length, 1));
+  }
+  return result;
+}
+
+function cosineSimilarity(left: ReadonlyMap<string, number>, right: ReadonlyMap<string, number>): number {
+  let dot = 0;
+  let leftNorm = 0;
+  let rightNorm = 0;
+  for (const weight of left.values()) leftNorm += weight * weight;
+  for (const weight of right.values()) rightNorm += weight * weight;
+  for (const [token, weight] of left) dot += weight * (right.get(token) ?? 0);
+  return leftNorm && rightNorm ? dot / Math.sqrt(leftNorm * rightNorm) : 0;
+}
+
+function relevanceScores(
+  candidates: readonly SourceSentence[],
+  sentenceCount: number,
+  frequency: ReadonlyMap<string, number>,
+): ReadonlyMap<SourceSentence, number> {
+  const vectors = new Map(candidates.map((candidate) => [candidate, weightedVector(candidate, sentenceCount, frequency)]));
+  const blockCentroid = centroid([...vectors.values()]);
+  const blockWeight = [...blockCentroid.values()].reduce((total, weight) => total + weight, 0);
+  return new Map(candidates.map((candidate) => {
+    const vector = vectors.get(candidate)!;
+    const coverage = [...vector.values()].reduce((total, weight) => total + weight, 0) / Math.max(blockWeight, 1);
+    const centrality = cosineSimilarity(vector, blockCentroid);
+    const leadBonus = candidate.blockSentenceIndex === 0 ? 0.03 : 0;
+    return [candidate, 0.72 * centrality + 0.25 * Math.min(1, coverage) + leadBonus] as const;
+  }));
 }
 
 export function extractiveSummaries(blocks: readonly MarkdownBlock[], detail: number): readonly { readonly block: MarkdownBlock; readonly markdown: string }[] {
   const sentences = blocks.flatMap(sourceSentences);
   const policy = detailPolicy(detail);
   if (!sentences.length || !policy.summaryEnabled) return [];
-  const frequency = new Map<string, number>();
-  for (const sentence of sentences) {
-    for (const token of sentenceTokens(sentence.sentence)) frequency.set(token, (frequency.get(token) ?? 0) + 1);
-  }
+  const frequency = documentFrequencies(sentences);
   const selectedByBlock = new Map<string, SourceSentence[]>();
   for (const block of blocks) {
     const candidates = sentences.filter((sentence) => sentence.block.id === block.id);
     const selectionCount = Math.max(1, Math.ceil(candidates.length * policy.extractiveSentenceRatio));
-    const relevance = relevanceScores(candidates, frequency);
+    const relevance = relevanceScores(candidates, sentences.length, frequency);
     const selected: SourceSentence[] = [];
     while (selected.length < selectionCount && selected.length < candidates.length) {
       const next = candidates
         .filter((candidate) => !selected.includes(candidate))
         .sort((left, right) => {
-          const score = (candidate: SourceSentence): number => 0.7 * (relevance.get(candidate) ?? 0) - 0.3 * Math.max(0, ...selected.map((chosen) => lexicalSimilarity(candidate, chosen)));
+          const score = (candidate: SourceSentence): number => 0.75 * (relevance.get(candidate) ?? 0) - 0.25 * Math.max(0, ...selected.map((chosen) => lexicalSimilarity(candidate, chosen)));
           return score(right) - score(left) || left.blockSentenceIndex - right.blockSentenceIndex;
         })[0];
       if (!next) break;
@@ -278,7 +315,6 @@ export function extractiveSummaries(blocks: readonly MarkdownBlock[], detail: nu
     return selected?.length ? [{ block, markdown: selected.map((sentence) => sentence.sentence).join(' ') }] : [];
   });
 }
-
 
 export function withSummaries(
   result: CompressionResult,
