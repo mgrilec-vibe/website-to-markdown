@@ -6,6 +6,7 @@ import type {
   MarkdownBlock,
   ModelAvailability,
 } from './export-domain';
+import { createGroundingEvidence } from './extractive-summarizer';
 
 const SUPPORTED_LANGUAGES: Readonly<Record<string, true>> = { en: true, es: true, ja: true, de: true, fr: true };
 
@@ -51,7 +52,6 @@ export interface BuiltInAiApi {
 }
 
 const builtInAi = globalThis as typeof globalThis & BuiltInAiApi;
-
 
 async function capabilityOf(api: { availability(): Promise<ChromeAvailability> } | undefined): Promise<{ state: ModelAvailability; error?: string }> {
   if (!api) return { state: 'unavailable' };
@@ -180,6 +180,102 @@ export function normalizeSummaryText(markdown: string): string {
     .trim();
 }
 
+export interface SummaryGroundingResult {
+  readonly supported: boolean;
+  readonly reason?: string;
+}
+
+function factTokens(text: string): readonly string[] {
+  return text.toLocaleLowerCase().match(/(?<![\p{L}\p{N}_-])(?:v)?\d+(?:[.,]\d+)*(?:%|[\p{L}]+)?(?![\p{L}\p{N}_-])/gu) ?? [];
+}
+
+function urls(text: string): readonly string[] {
+  return text.match(/https?:\/\/[^\s)>\]]+/gu) ?? [];
+}
+
+function contentTokens(text: string): readonly string[] {
+  const segmenter = typeof Intl.Segmenter === 'function'
+    ? new Intl.Segmenter(undefined, { granularity: 'word' })
+    : undefined;
+  const segmented = segmenter
+    ? [...segmenter.segment(text.toLocaleLowerCase())]
+      .filter((part) => part.isWordLike)
+      .map((part) => part.segment)
+    : text.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+  return [...new Set(segmented.filter((token) => token.length >= 3 || /\d/u.test(token)))];
+}
+
+function characterTrigrams(text: string): readonly string[] {
+  const normalized = text.toLocaleLowerCase().replace(/\s+/gu, ' ').trim();
+  if (normalized.length < 3) return [];
+  const result = new Set<string>();
+  for (let index = 0; index <= normalized.length - 3; index += 1) result.add(normalized.slice(index, index + 3));
+  return [...result];
+}
+
+function groundingOverlap(summary: string, source: string): number {
+  const summaryTokens = contentTokens(summary);
+  const sourceTokenSet = new Set(contentTokens(source));
+  const tokenOverlap = summaryTokens.length
+    ? summaryTokens.filter((token) => sourceTokenSet.has(token)).length / summaryTokens.length
+    : 1;
+  const summaryTrigrams = characterTrigrams(summary);
+  const sourceTrigramSet = new Set(characterTrigrams(source));
+  const trigramOverlap = summaryTrigrams.length
+    ? summaryTrigrams.filter((trigram) => sourceTrigramSet.has(trigram)).length / summaryTrigrams.length
+    : 1;
+  return Math.max(tokenOverlap, trigramOverlap);
+}
+
+function inlineCode(text: string): readonly string[] {
+  return [...text.matchAll(/`([^`\n]+)`/gu)].map((match) => match[1]!.trim()).filter(Boolean);
+}
+
+export function validateSummaryGrounding(summaryMarkdown: string, sourceText: string): SummaryGroundingResult {
+  const summary = normalizeSummaryText(summaryMarkdown);
+  const source = normalizeSummaryText(sourceText);
+  if (!summary) return { supported: false, reason: 'The local model returned an empty summary.' };
+  const summaryWords = summary.match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
+  const sourceWords = source.match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
+  if (summaryWords > Math.max(1, sourceWords)) {
+    return { supported: false, reason: 'The local summary is longer than its source evidence.' };
+  }
+  const sourceFacts = new Set(factTokens(source));
+  const unsupportedFact = factTokens(summary).find((fact) => !sourceFacts.has(fact));
+  if (unsupportedFact) {
+    return { supported: false, reason: `The local summary introduced unsupported numeric fact ${unsupportedFact}.` };
+  }
+  const sourceUrls = new Set(urls(sourceText));
+  const unsupportedUrl = urls(summaryMarkdown).find((url) => !sourceUrls.has(url));
+  if (unsupportedUrl) {
+    return { supported: false, reason: 'The local summary introduced an unsupported link.' };
+  }
+  const normalizedSource = source.toLocaleLowerCase();
+  const unsupportedCode = inlineCode(summaryMarkdown).find((identifier) =>
+    !normalizedSource.includes(normalizeSummaryText(identifier).toLocaleLowerCase()));
+  if (unsupportedCode) {
+    return { supported: false, reason: `The local summary introduced unsupported code identifier ${unsupportedCode}.` };
+  }
+  if (contentTokens(summary).length >= 5 && groundingOverlap(summary, source) < 0.12) {
+    return { supported: false, reason: 'The local summary is not sufficiently grounded in source vocabulary.' };
+  }
+  return { supported: true };
+}
+
+async function groundedSummarize(
+  session: SummarizerSession,
+  input: string,
+  sourceText: string,
+  context?: string,
+): Promise<string> {
+  const markdown = await summarizeInput(session, input, context);
+  const grounding = validateSummaryGrounding(markdown, sourceText);
+  if (!grounding.supported) {
+    throw new Error(`Chrome local summary failed grounding checks: ${grounding.reason ?? 'unsupported output'}`);
+  }
+  return markdown;
+}
+
 export function chunkSummarizableBlocks(blocks: readonly MarkdownBlock[], maxChars = Number.MAX_SAFE_INTEGER): readonly MarkdownBlock[][] {
   const chunks: MarkdownBlock[][] = [];
   let current: MarkdownBlock[] = [];
@@ -207,6 +303,15 @@ export interface LocalSummaryOutput {
   readonly summaries: readonly GeneratedSummary[];
   readonly chunkCount: number;
   readonly reductionStages: number;
+}
+
+interface GroundedSummary extends GeneratedSummary {
+  readonly sourceBlocks: readonly MarkdownBlock[];
+}
+
+interface PreparedSummaryGroup {
+  readonly summaries: readonly GroundedSummary[];
+  readonly input: string;
 }
 
 function measureInputUsage(session: SummarizerSession, text: string, context?: string): Promise<number> {
@@ -247,29 +352,71 @@ async function measuredChunks(
   return chunks;
 }
 
+function uniqueSourceBlocks(summaries: readonly GroundedSummary[]): readonly MarkdownBlock[] {
+  const byId = new Map<string, MarkdownBlock>();
+  for (const summary of summaries) {
+    for (const block of summary.sourceBlocks) if (!byId.has(block.id)) byId.set(block.id, block);
+  }
+  return [...byId.values()].sort((left, right) => left.sourceOrder - right.sourceOrder);
+}
+
+function reductionInput(
+  summaries: readonly GroundedSummary[],
+  evidenceWordBudget: number,
+  includeEvidence: boolean,
+): string {
+  if (!includeEvidence) return summaries.map((summary) => summary.markdown.trim()).filter(Boolean).join('\n\n');
+  const drafts = summaries
+    .map((summary, index) => `### Draft ${index + 1}\n${summary.markdown.trim()}`)
+    .join('\n\n');
+  const evidence = evidenceWordBudget > 0
+    ? createGroundingEvidence(uniqueSourceBlocks(summaries), evidenceWordBudget)
+    : '';
+  return [
+    '## Draft summaries',
+    drafts,
+    evidence ? `## Source evidence\n${evidence}` : '',
+  ].filter(Boolean).join('\n\n');
+}
+
+async function fitReductionInput(
+  session: SummarizerSession,
+  summaries: readonly GroundedSummary[],
+  context?: string,
+): Promise<string | undefined> {
+  const evidenceBudgets = context === undefined ? [0] : [180, 120, 80, 40, 0];
+  for (const evidenceWordBudget of evidenceBudgets) {
+    const input = reductionInput(summaries, evidenceWordBudget, context !== undefined);
+    if (await measureInputUsage(session, input, context) <= session.inputQuota) return input;
+  }
+  return undefined;
+}
+
 async function measuredSummaryGroups(
   session: SummarizerSession,
-  summaries: readonly GeneratedSummary[],
+  summaries: readonly GroundedSummary[],
   context?: string,
-): Promise<readonly GeneratedSummary[][]> {
+): Promise<readonly PreparedSummaryGroup[]> {
   if (!Number.isFinite(session.inputQuota) || session.inputQuota <= 0) throw new Error('Chrome Summarizer reported no usable input quota.');
-  const groups: GeneratedSummary[][] = [];
-  let current: GeneratedSummary[] = [];
+  const groups: PreparedSummaryGroup[] = [];
+  let current: GroundedSummary[] = [];
+  let currentInput = '';
   for (const summary of summaries) {
     const candidate = [...current, summary];
-    const input = candidate.map((item) => item.markdown.trim()).filter(Boolean).join('\n\n');
-    const usage = await measureInputUsage(session, input, context);
-    if (usage > session.inputQuota) {
+    const candidateInput = await fitReductionInput(session, candidate, context);
+    if (!candidateInput) {
       if (current.length === 0) throw new Error('A local summary exceeds the bounded reduction capacity.');
-      groups.push(current);
+      groups.push({ summaries: current, input: currentInput });
       current = [summary];
-      const singleUsage = await measureInputUsage(session, summary.markdown, context);
-      if (singleUsage > session.inputQuota) throw new Error('A local summary exceeds the bounded reduction capacity.');
+      const singleInput = await fitReductionInput(session, current, context);
+      if (!singleInput) throw new Error('A local summary exceeds the bounded reduction capacity.');
+      currentInput = singleInput;
     } else {
       current = candidate;
+      currentInput = candidateInput;
     }
   }
-  if (current.length > 0) groups.push(current);
+  if (current.length > 0) groups.push({ summaries: current, input: currentInput });
   return groups;
 }
 
@@ -279,26 +426,33 @@ export async function summarizeBlocks(
   context?: string,
 ): Promise<LocalSummaryOutput> {
   const chunks = await measuredChunks(session, blocks, context);
-  let summaries: GeneratedSummary[] = [];
+  let summaries: GroundedSummary[] = [];
   for (const chunk of chunks) {
     const anchor = chunk[chunk.length - 1];
     if (!anchor) throw new Error('Summary chunk had no source blocks.');
     const text = chunk.map((block) => block.markdown).join('\n\n');
-    summaries.push({ block: anchor, markdown: await summarizeInput(session, text, context) });
+    summaries.push({ block: anchor, markdown: await summarizeInput(session, text, context), sourceBlocks: chunk });
   }
   let reductionStages = 0;
   while (summaries.length > 1) {
     if (reductionStages === 3) throw new Error('Local summary requires more reduction stages than this export permits.');
     const groups = await measuredSummaryGroups(session, summaries, context);
-    summaries = await Promise.all(groups.map(async (current) => {
-      const anchor = current[current.length - 1];
+    summaries = await Promise.all(groups.map(async (group) => {
+      const anchor = group.summaries[group.summaries.length - 1];
       if (!anchor) throw new Error('Summary reduction group had no source block.');
+      const sourceBlocks = uniqueSourceBlocks(group.summaries);
+      const sourceText = sourceBlocks.map((block) => block.markdown).join('\n\n');
       return {
         block: anchor.block,
-        markdown: await summarizeInput(session, current.map((summary) => summary.markdown.trim()).filter(Boolean).join('\n\n'), context),
+        markdown: await groundedSummarize(session, group.input, sourceText, context),
+        sourceBlocks,
       };
     }));
     reductionStages += 1;
   }
-  return { summaries, chunkCount: chunks.length, reductionStages };
+  return {
+    summaries: summaries.map(({ block, markdown }) => ({ block, markdown })),
+    chunkCount: chunks.length,
+    reductionStages,
+  };
 }
