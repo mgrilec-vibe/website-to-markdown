@@ -5,6 +5,7 @@ import {
   detectEligibleLanguage,
   normalizeSummaryText,
   summarizeBlocks,
+  validateSummaryGrounding,
   type LanguageDetectorSession,
   type LocalAiCreateOptions,
   type LocalSummaryOutput,
@@ -202,11 +203,28 @@ export async function createFinalExport(
       return customFallback(captured, conversion, mode, detail, detectedLanguage, capability, detectedLanguage.warning ?? 'Chrome local summarization does not support this page language.');
     }
     const baseline = deterministicCompression(captured, conversion, mode, detail, detectedLanguage, 'browser');
-    const sharedContext = `This is focused primary content from the page titled "${captured.metadata.title}". The audience is a reader who wants a clear summary of the page's subject.`;
-    const requestContext = 'Summarize the primary content. Emphasize the main behavior, important concepts, parameters, results, errors, and cautions. Ignore navigation, footer links, related-page indexes, and implementation metadata.';
+    const sharedContext = [
+      `This is the focused primary content from the page titled "${captured.metadata.title}".`,
+      'Use the supplied page text as the only authority.',
+      'Preserve exact numbers, versions, API names, conditions, errors, warnings, and limitations.',
+      'Do not invent claims, links, code identifiers, causes, or recommendations.',
+    ].join(' ');
+    const requestContext = [
+      'Produce a coherent summary of the primary content, ordered by document-wide importance rather than source position alone.',
+      'Cover distinct major sections when they add unique information.',
+      'Prefer concrete behavior, parameters, results, errors, trade-offs, and cautions over framing or repeated prose.',
+      'Use only statements supported by the source and preserve qualifiers such as may, must, only, and except.',
+      'Ignore navigation, footer links, related-page indexes, boilerplate, and implementation metadata.',
+    ].join(' ');
     session = await adapter.createSummarizer(detailPolicy(detail), detectedLanguage, { sharedContext });
     onProgress?.('summarizing');
     const summary = await adapter.summarizeBlocks(session, source.blocks, requestContext);
+    const generated = summary.summaries[0];
+    if (!generated) throw new Error('Chrome local summarization returned no summary.');
+    const grounding = validateSummaryGrounding(generated.markdown, source.text);
+    if (!grounding.supported) {
+      throw new Error(`Chrome local summary failed grounding checks: ${grounding.reason ?? 'unsupported output'}`);
+    }
     return {
       result: withGeneratedSummaries(
         { ...baseline, metadata: { ...baseline.metadata, language: detectedLanguage } },
