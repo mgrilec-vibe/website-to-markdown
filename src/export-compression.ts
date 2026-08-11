@@ -10,6 +10,13 @@ import type {
   SummaryOrigin,
 } from './export-domain';
 import type { MarkdownConversion } from './conversion';
+import {
+  createStructureAwareExtractiveSummaries,
+  extractiveSummaries,
+  sentenceSimilarity,
+} from './extractive-summarizer';
+
+export { extractiveSummaries, sentenceSimilarity };
 
 const encoder = new TextEncoder();
 
@@ -182,104 +189,6 @@ export function deterministicCompression(
   );
 }
 
-interface SourceSentence {
-  readonly block: MarkdownBlock;
-  readonly sentence: string;
-  readonly blockSentenceIndex: number;
-  readonly sourceOrder: number;
-}
-
-function sourceSentences(block: MarkdownBlock): readonly SourceSentence[] {
-  const text = block.markdown.trim();
-  if (!text) return [];
-  const segmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, { granularity: 'sentence' }) : undefined;
-  const segments = segmenter
-    ? [...segmenter.segment(text)].map(({ segment }) => segment)
-    : text.split(/(?<=[.!?])\s+/u);
-  return segments
-    .map((sentence) => sentence.trim())
-    .filter(Boolean)
-    .map((sentence, blockSentenceIndex) => ({ block, sentence, blockSentenceIndex, sourceOrder: block.sourceOrder }));
-}
-
-function sentenceTokens(sentence: string): readonly string[] {
-  return [...new Set(sentence.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [])];
-}
-
-function characterTrigrams(sentence: string): readonly string[] {
-  const normalized = sentence.toLocaleLowerCase().replace(/\s+/gu, ' ').trim();
-  if (normalized.length < 3) return [];
-  const trigrams = new Set<string>();
-  for (let index = 0; index <= normalized.length - 3; index += 1) trigrams.add(normalized.slice(index, index + 3));
-  return [...trigrams];
-}
-
-function jaccard(left: readonly string[], right: readonly string[]): number {
-  if (!left.length || !right.length) return 0;
-  const leftSet = new Set(left);
-  const rightSet = new Set(right);
-  let shared = 0;
-  for (const token of leftSet) if (rightSet.has(token)) shared += 1;
-  return shared / (leftSet.size + rightSet.size - shared);
-}
-
-export function sentenceSimilarity(left: string, right: string): number {
-  const leftTokens = sentenceTokens(left);
-  const rightTokens = sentenceTokens(right);
-  if (leftTokens.length >= 2 && rightTokens.length >= 2) return jaccard(leftTokens, rightTokens);
-  const leftTrigrams = characterTrigrams(left);
-  const rightTrigrams = characterTrigrams(right);
-  return leftTrigrams.length >= 3 && rightTrigrams.length >= 3 ? jaccard(leftTrigrams, rightTrigrams) : 0;
-}
-
-function lexicalSimilarity(left: SourceSentence, right: SourceSentence): number {
-  return sentenceSimilarity(left.sentence, right.sentence);
-}
-
-function relevanceScores(candidates: readonly SourceSentence[], frequency: ReadonlyMap<string, number>): ReadonlyMap<SourceSentence, number> {
-  const raw = candidates.map((candidate) => {
-    const tokens = sentenceTokens(candidate.sentence);
-    const frequencyScore = tokens.reduce((total, token) => total + (frequency.get(token) ?? 0), 0) / Math.max(tokens.length, 1);
-    return { candidate, score: frequencyScore + (candidate.blockSentenceIndex === 0 ? 0.25 : 0) + 1 / (1 + candidate.sourceOrder) };
-  });
-  const minimum = Math.min(...raw.map(({ score }) => score));
-  const maximum = Math.max(...raw.map(({ score }) => score));
-  return new Map(raw.map(({ candidate, score }) => [candidate, maximum === minimum ? 1 : (score - minimum) / (maximum - minimum)]));
-}
-
-export function extractiveSummaries(blocks: readonly MarkdownBlock[], detail: number): readonly { readonly block: MarkdownBlock; readonly markdown: string }[] {
-  const sentences = blocks.flatMap(sourceSentences);
-  const policy = detailPolicy(detail);
-  if (!sentences.length || !policy.summaryEnabled) return [];
-  const frequency = new Map<string, number>();
-  for (const sentence of sentences) {
-    for (const token of sentenceTokens(sentence.sentence)) frequency.set(token, (frequency.get(token) ?? 0) + 1);
-  }
-  const selectedByBlock = new Map<string, SourceSentence[]>();
-  for (const block of blocks) {
-    const candidates = sentences.filter((sentence) => sentence.block.id === block.id);
-    const selectionCount = Math.max(1, Math.ceil(candidates.length * policy.extractiveSentenceRatio));
-    const relevance = relevanceScores(candidates, frequency);
-    const selected: SourceSentence[] = [];
-    while (selected.length < selectionCount && selected.length < candidates.length) {
-      const next = candidates
-        .filter((candidate) => !selected.includes(candidate))
-        .sort((left, right) => {
-          const score = (candidate: SourceSentence): number => 0.7 * (relevance.get(candidate) ?? 0) - 0.3 * Math.max(0, ...selected.map((chosen) => lexicalSimilarity(candidate, chosen)));
-          return score(right) - score(left) || left.blockSentenceIndex - right.blockSentenceIndex;
-        })[0];
-      if (!next) break;
-      selected.push(next);
-    }
-    if (selected.length) selectedByBlock.set(block.id, selected.sort((left, right) => left.blockSentenceIndex - right.blockSentenceIndex));
-  }
-  return blocks.flatMap((block) => {
-    const selected = selectedByBlock.get(block.id);
-    return selected?.length ? [{ block, markdown: selected.map((sentence) => sentence.sentence).join(' ') }] : [];
-  });
-}
-
-
 export function withSummaries(
   result: CompressionResult,
   summaries: readonly { readonly block: MarkdownBlock; readonly markdown: string }[],
@@ -335,9 +244,13 @@ export function deterministicExtractiveCompression(
 ): CompressionResult {
   const result = deterministicCompression(captured, conversion, mode, detail, language, requestedProvider);
   if (result.metadata.detail === 100) return result;
-  const eligible = conversion.blocks.filter((block) => block.kind === 'summarizable');
   const summaryIds = new Set(result.summarizableBlocks.map((block) => block.id));
-  const summaries = extractiveSummaries(eligible, detail).filter((summary) => summaryIds.has(summary.block.id));
+  const summaries = createStructureAwareExtractiveSummaries(
+    conversion.blocks,
+    summaryIds,
+    detail,
+    captured.metadata.title,
+  );
   return withSummaries(result, summaries, 'deterministic-diverse-extractive');
 }
 
